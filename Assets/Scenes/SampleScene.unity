@@ -12570,7 +12570,7 @@ GameObject:
   - component: {fileID: 1041851716}
   - component: {fileID: 1041851715}
   m_Layer: 0
-  m_Name: house
+  m_Name: House
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -14188,10 +14188,10 @@ GameObject:
   - component: {fileID: 1702965928}
   - component: {fileID: 1702965927}
   - component: {fileID: 1702965929}
-  - component: {fileID: 1702965930}
   - component: {fileID: 1702965931}
+  - component: {fileID: 1702965930}
   m_Layer: 0
-  m_Name: Thief
+  m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
