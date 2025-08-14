@@ -1,42 +1,20 @@
 using UnityEngine;
-using static PlayerAnimationController;
 
-public class IdleState : PlayerState
+public class IdleState : State
 {
-    public IdleState(PlayerController player, PlayerStateMachine stateMachine)
-        : base(player, stateMachine) { }
+    public IdleState(Entity entity, StateMachine stateMachine) : base(entity, stateMachine) { }
 
     public override void Enter()
     {
-        animator.PlayAnimation(AnimationType.Idle);
+        entity.Animation.PlayIdle();
     }
 
-    public override void LogicUpdate()
+    public override void UpdateState()
     {
-        // Переходы из состояния покоя
-        if (!player.IsGrounded)
-        {
-            stateMachine.ChangeState(player.Rigidbody.linearVelocity.y > 0
-                ? new JumpState(player, stateMachine)
-                : new FallState(player, stateMachine));
-            return;
-        }
+        if (Mathf.Abs(entity.Input.MoveDirection.x) > 0.1f)
+            stateMachine.ChangeState(new RunState(entity, stateMachine));
 
-        if (player.InputDirection.x != 0)
-        {
-            stateMachine.ChangeState(new RunState(player, stateMachine));
-            return;
-        }
-
-        if (player.InputDirection.y < 0 && player.IsGrounded)
-        {
-            stateMachine.ChangeState(new CrouchState(player, stateMachine));
-            return;
-        }
-
-        if (player.IsTouchingLadder && Mathf.Abs(player.InputDirection.y) > 0.1f)
-        {
-            stateMachine.ChangeState(new ClimbState(player, stateMachine));
-        }
+        if (entity.Input.JumpTriggered && entity.IsGrounded)
+            stateMachine.ChangeState(new JumpState(entity, stateMachine));
     }
 }
