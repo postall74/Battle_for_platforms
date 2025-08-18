@@ -34,6 +34,8 @@ public abstract class Entity : MonoBehaviour
     public float ClimbSpeed => _climbSpeed;
     public float CrouchSpeed => _crouchSpeed;
     public Rigidbody2D Rigidbody2D => _rigidbody;
+    public Collider2D MainCollider => _mainCollider;
+    public Collider2D CrouchCollider => _crouchCollider;
 
     protected virtual void Awake()
     {
