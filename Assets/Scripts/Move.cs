@@ -1,0 +1,38 @@
+using UnityEngine;
+
+[RequireComponent(typeof(Rigidbody2D))]
+public class Move : MonoBehaviour
+{
+    [SerializeField] private float _speed = 5f;
+
+    private float _moveInput;
+    private Player _player;
+    private Animation _animation;
+    private Vector3 _originaScale;
+
+    private void Awake()
+    {
+        TryGetComponent<Player>(out _player);
+        TryGetComponent<Animation>(out _animation);
+        _originaScale = _player.transform.localScale;
+    }
+
+    private void Update()
+    {
+        _moveInput = Input.GetAxisRaw("Horizontal");
+        Flip();
+        _animation.PlayAnimationRun(Mathf.Abs(_moveInput));
+    }
+
+    private void FixedUpdate()
+    {
+        _player.Rigidbody.linearVelocity = new Vector2(_speed * _moveInput, _player.Rigidbody.linearVelocity.y);
+    }
+
+    private void Flip()
+    {
+        if (_moveInput != 0)
+            transform.localScale = new Vector3(Mathf.Sign(_moveInput * _originaScale.x), _originaScale.y , _originaScale.z);
+        //_player.transform.localScale = originaScale;
+    }
+}
