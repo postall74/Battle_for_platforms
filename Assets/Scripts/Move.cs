@@ -8,13 +8,11 @@ public class Move : MonoBehaviour
     private float _moveInput;
     private Player _player;
     private Animation _animation;
-    private Vector3 _originaScale;
 
     private void Awake()
     {
         TryGetComponent<Player>(out _player);
         TryGetComponent<Animation>(out _animation);
-        _originaScale = _player.transform.localScale;
     }
 
     private void Update()
@@ -32,7 +30,6 @@ public class Move : MonoBehaviour
     private void Flip()
     {
         if (_moveInput != 0)
-            transform.localScale = new Vector3(Mathf.Sign(_moveInput * _originaScale.x), _originaScale.y , _originaScale.z);
-        //_player.transform.localScale = originaScale;
+            _player.SpriteRenderer.flipX = _moveInput < 0;
     }
 }
