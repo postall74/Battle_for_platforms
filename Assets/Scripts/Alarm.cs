@@ -4,6 +4,9 @@ using UnityEngine;
 [RequireComponent(typeof(AlarmTrigger))]
 public class Alarm : MonoBehaviour
 {
+    private const float Mute = 0f;
+    private const float MinVolume = 0.01f;   
+
     [SerializeField] private AudioSource _audioSource;
     [SerializeField] private float _maxVolume = 1f;
     [SerializeField] private float _speedVolumeChange = 0.1f;
@@ -49,19 +52,17 @@ public class Alarm : MonoBehaviour
         if (_volumeCoroutine != null)
             StopCoroutine(_volumeCoroutine);
 
-        _volumeCoroutine = StartCoroutine(ChangeVolume(0f));
+        _volumeCoroutine = StartCoroutine(ChangeVolume(Mute));
     }
 
     private IEnumerator ChangeVolume(float targetVolume)
     {
-        float startVolume = _audioSource.volume;
-        float duration = Mathf.Abs(targetVolume - startVolume) / _speedVolumeChange;
-        float elapsedTime = 0f;
+        float currentVolume = _audioSource.volume;
+        float direction = Mathf.Sign(targetVolume - currentVolume);
 
-        while (elapsedTime < duration)
+        while (Mathf.Abs(_audioSource.volume - targetVolume) > MinVolume)
         {
-            elapsedTime += Time.deltaTime;
-            _audioSource.volume = Mathf.MoveTowards(startVolume, targetVolume, elapsedTime / duration);
+            _audioSource.volume += direction * _speedVolumeChange * Time.deltaTime;
             yield return null;
         }
 
