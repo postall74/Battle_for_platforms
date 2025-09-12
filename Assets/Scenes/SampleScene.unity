@@ -15109,9 +15109,10 @@ GameObject:
   - component: {fileID: 1702965931}
   - component: {fileID: 1702965938}
   - component: {fileID: 1702965930}
+  - component: {fileID: 1702965935}
+  - component: {fileID: 1702965939}
   - component: {fileID: 1702965937}
   - component: {fileID: 1702965936}
-  - component: {fileID: 1702965935}
   m_Layer: 7
   m_Name: Player
   m_TagString: Untagged
@@ -15250,9 +15251,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ebbf3d5dbc343ab4094bd81481a0286e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Rigidbody: {fileID: 1702965931}
-  SpriteRenderer: {fileID: 1702965927}
-  Animator: {fileID: 1702965930}
 --- !u!114 &1702965936
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15265,7 +15263,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 582da673e0db5d548be3ac99adbe12b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _speed: 5
+  _speedX: 5
 --- !u!114 &1702965937
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15278,7 +15276,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac6771765818997409e5b989e0070a6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _speed: Speed
 --- !u!70 &1702965938
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -15316,6 +15313,18 @@ CapsuleCollider2D:
   m_Offset: {x: 0.0054766866, y: -0.04792102}
   m_Size: {x: 0.1456184, y: 0.2341582}
   m_Direction: 0
+--- !u!114 &1702965939
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1702965926}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a067c138d543efe478a89b64c7d134e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1820411378
 GameObject:
   m_ObjectHideFlags: 0
@@ -15328,6 +15337,7 @@ GameObject:
   - component: {fileID: 1820411383}
   - component: {fileID: 1820411379}
   - component: {fileID: 1820411382}
+  - component: {fileID: 1820411384}
   m_Layer: 0
   m_Name: door
   m_TagString: Untagged
@@ -15508,6 +15518,18 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 2.1594892, y: 3.8035433}
   m_EdgeRadius: 0
+--- !u!114 &1820411384
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1820411378}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba5b9851c558411419db94940704ac68, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1887791324
 GameObject:
   m_ObjectHideFlags: 0
