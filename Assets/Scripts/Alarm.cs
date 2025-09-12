@@ -1,42 +1,55 @@
 using System.Collections;
 using UnityEngine;
 
+[RequireComponent(typeof(AlarmTrigger))]
 public class Alarm : MonoBehaviour
 {
     [SerializeField] private AudioSource _audioSource;
     [SerializeField] private float _maxVolume = 1f;
     [SerializeField] private float _speedVolumeChange = 0.1f;
 
+    private AlarmTrigger _alarmTrigger;
     private bool _isPlayerInTrigger = false;
     private Coroutine _volumeCoroutine;
 
-    private void OnTriggerEnter2D(Collider2D collision)
+    private void Awake()
     {
-        if (collision.TryGetComponent<Player>(out Player player))
-        {
-            _isPlayerInTrigger = true;
-            
-            if(_volumeCoroutine != null)
-                StopCoroutine(_volumeCoroutine);
-
-            _volumeCoroutine = StartCoroutine(ChangeVolume(_maxVolume));
-
-            if (_audioSource.isPlaying == false)
-                _audioSource.Play();
-        }
+        _alarmTrigger = GetComponent<AlarmTrigger>();
     }
 
-    private void OnTriggerExit2D(Collider2D collision)
+    private void OnEnable()
     {
-        if (collision.TryGetComponent<Player>(out Player player))
-        {
-            _isPlayerInTrigger = false;
+        _alarmTrigger.PlayerEntered += OnPlayerEntered;
+        _alarmTrigger.PlayerExited += OnPlayerExited;
+    }
 
-            if (_volumeCoroutine != null)
-                StopCoroutine(_volumeCoroutine);
+    private void OnDisable()
+    {
+        _alarmTrigger.PlayerEntered -= OnPlayerEntered;
+        _alarmTrigger.PlayerExited -= OnPlayerExited;
+    }
 
-            _volumeCoroutine = StartCoroutine(ChangeVolume(0f));
-        }
+    private void OnPlayerEntered()
+    {
+        _isPlayerInTrigger = true;
+
+        if(_volumeCoroutine != null ) 
+            StopCoroutine(_volumeCoroutine);
+
+        _volumeCoroutine = StartCoroutine(ChangeVolume(_maxVolume));
+
+        if (_audioSource.isPlaying == false)
+            _audioSource.Play();
+    }
+
+    private void OnPlayerExited()
+    {
+        _isPlayerInTrigger = false;
+
+        if (_volumeCoroutine != null)
+            StopCoroutine(_volumeCoroutine);
+
+        _volumeCoroutine = StartCoroutine(ChangeVolume(0f));
     }
 
     private IEnumerator ChangeVolume(float targetVolume)
