@@ -20,7 +20,15 @@ public class Player : MonoBehaviour
 
     private void FixedUpdate()
     {
-        Mover.Move(InputReader.Direction);
-        Animation.PlayAnimationRun(InputReader.Direction);
+        Mover.Move(InputReader.HorizontalDirection);
+        Animation.PlayAnimationRun(InputReader.HorizontalDirection);
+
+        if (InputReader.WasKeyJumpPressed())
+        {
+            Mover.Jump();
+            Animation.TriggerJump();
+        }
+
+        Animation.PlayAnimationJumpOrFall(Mover.GetVerticalVelocity(), Mover.IsGrounded());
     }
 }
