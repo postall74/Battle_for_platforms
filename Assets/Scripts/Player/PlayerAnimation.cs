@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [RequireComponent(typeof(Animator))]
-public class PlayerAnimation : MonoBehaviour
+public class PlayerAnimation : MonoBehaviour, IAnimated
 {
     private Animator _animator;
 
@@ -29,5 +29,10 @@ public class PlayerAnimation : MonoBehaviour
     public void ResetJumpTrigger()
     {
         _animator.ResetTrigger(PlayerAnimatorData.JumpTrigger);
+    }
+
+    public void PlayAnimationDie()
+    {
+        _animator.SetBool(PlayerAnimatorData.IsDie, true);
     }
 }
