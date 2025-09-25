@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 public class EnemyStateMachine : MonoBehaviour
@@ -9,7 +8,7 @@ public class EnemyStateMachine : MonoBehaviour
     [SerializeField] private float _attackRange = 1f;
     [SerializeField] private LayerMask _playerLayer;
 
-    private EnemyState _currentState = EnemyState.Patrolling;
+    private EnemyStates _currentState = EnemyStates.Patrolling;
     private EnemyMover _movement;
     private Transform _player;
     private Vector2 _startPosition;
@@ -59,15 +58,15 @@ public class EnemyStateMachine : MonoBehaviour
             float distanceToPlayer = Vector2.Distance(transform.position, _player.position);
 
             if (distanceToPlayer <= _attackRange)
-                _currentState = EnemyState.Attacking;
+                _currentState = EnemyStates.Attacking;
             else if(distanceToPlayer <= _visionRange && IsPlayerInPatrolRange())
-                _currentState = EnemyState.Chasing;
+                _currentState = EnemyStates.Chasing;
             else
-                _currentState = EnemyState.Returning;
+                _currentState = EnemyStates.Returning;
         }
-        else if(_currentState != EnemyState.Patrolling && _currentState != EnemyState.Returning)
+        else if(_currentState != EnemyStates.Patrolling && _currentState != EnemyStates.Returning)
         {
-            _currentState = EnemyState.Returning;
+            _currentState = EnemyStates.Returning;
         }
     }
 
@@ -75,16 +74,16 @@ public class EnemyStateMachine : MonoBehaviour
     {
         switch (_currentState)
         {
-            case EnemyState.Patrolling:
+            case EnemyStates.Patrolling:
                 Patrol();
                 break;
-            case EnemyState.Chasing:
+            case EnemyStates.Chasing:
                 Chase();
                 break;
-            case EnemyState.Attacking:
+            case EnemyStates.Attacking:
                 Attack();
                 break;
-            case EnemyState.Returning:
+            case EnemyStates.Returning:
                 ReturnToStart();
                 break;
             default:
@@ -123,7 +122,7 @@ public class EnemyStateMachine : MonoBehaviour
         // Ќапример, нанесение урона игроку
 
         // ѕосле атаки продолжаем преследование
-        _currentState = EnemyState.Chasing;
+        _currentState = EnemyStates.Chasing;
     }
 
     private void ReturnToStart()
@@ -134,7 +133,7 @@ public class EnemyStateMachine : MonoBehaviour
 
         // ≈сли вернулись к начальной позиции, возобновл€ем патрулирование
         if (Vector2.Distance(transform.position, _startPosition) < 0.5f)
-            _currentState = EnemyState.Patrolling;
+            _currentState = EnemyStates.Patrolling;
     }
 
     private bool IsPlayerInPatrolRange()

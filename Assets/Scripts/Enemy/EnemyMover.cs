@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
-public class EnemyMover : MonoBehaviour
+public class EnemyMover : MonoBehaviour , IMovable
 {
     [SerializeField] private float _speed = 2f;
 
@@ -31,7 +31,8 @@ public class EnemyMover : MonoBehaviour
 
     public void Flip(float direction)
     {
-        if ((direction > 0 && !_isFacingRight) || (direction < 0 && _isFacingRight))
+        if ((direction > 0 && !_isFacingRight) || 
+            (direction < 0 && _isFacingRight))
         {
             _isFacingRight = !_isFacingRight;
             Vector3 scale = transform.localScale;

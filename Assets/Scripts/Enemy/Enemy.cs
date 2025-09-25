@@ -6,6 +6,7 @@ public partial class Enemy : MonoBehaviour, IDamageable
     [SerializeField] private int _health = 1;
     [SerializeField] private int _damage = 1;
     [SerializeField] private float _stunDuration = 1f;
+    [SerializeField] private float _deathDuration = 3f;
     [SerializeField] private float _deathJumpForce = 5f;
 
     private EnemyStateMachine _stateMachine;
@@ -37,33 +38,32 @@ public partial class Enemy : MonoBehaviour, IDamageable
             StartCoroutine(StunRoutine());
     }
 
-    public void Die()
+    private IEnumerator FlashColorRoutine(Color targetColor, float duration, bool resetColor = true)
     {
-        _isDead = true;
-        _stateMachine.SetDead(true);
-        StartCoroutine(DieRoutine());
+        float elapsedTime = 0f;
+        float flashSpeed = 10;
+
+        while (elapsedTime < duration)
+        {
+            _spriteRenderer.color = Color.Lerp(_originalColor, targetColor, Mathf.PingPong(elapsedTime * flashSpeed, 1));
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        if (resetColor)
+            _spriteRenderer.color = _originalColor;
     }
 
     private IEnumerator StunRoutine()
     {
         _stateMachine.SetStunned(true);
-
-        float elapsedTime = 0;
-
-        while (elapsedTime < _stunDuration)
-        {
-            _spriteRenderer.color = Color.Lerp(_originalColor, Color.red, Mathf.PingPong(elapsedTime * 10, 1));
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-
-        _spriteRenderer.color = _originalColor;
+        yield return StartCoroutine(FlashColorRoutine(Color.red, _stunDuration));
         _stateMachine.SetStunned(false);
     }
 
     private IEnumerator DieRoutine()
     {
-        Collider2D collider = GetComponent<Collider2D>();
+        Collider2D collider= GetComponent<Collider2D>();
 
         if (collider != null)
             collider.enabled = false;
@@ -73,16 +73,15 @@ public partial class Enemy : MonoBehaviour, IDamageable
         if (rigidbody != null)
             rigidbody.linearVelocity = new Vector2(0, _deathJumpForce);
 
-        float dieTime = 3.0f;
-        float elapsedTime = 0f;
-
-        while (elapsedTime < dieTime)
-        {
-            _spriteRenderer.color = Color.Lerp(_originalColor, Color.red, Mathf.PingPong(elapsedTime * 10, 1));
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
+        yield return StartCoroutine(FlashColorRoutine(Color.red, _deathDuration, false));
 
         Destroy(gameObject);
+    }
+
+    public void Die()
+    {
+        _isDead = true;
+        _stateMachine.SetDead(true);
+        StartCoroutine(DieRoutine());
     }
 }
