@@ -1,26 +1,30 @@
 using UnityEngine;
 
-[RequireComponent(typeof(PlayerAnimation), typeof(Mover))]
-public class Player : MonoBehaviour, IDamageable
+[RequireComponent(typeof(PlayerAnimation), typeof(PlayerMovement))]
+public class Player : MonoBehaviour, IDamageable, ICollectible
 {
+    [Header("Health Settings")]
     [SerializeField] private int _health = 1;
 
-    private int _damageValue = 1;
-    private float _dieForeceImpulse = 3f;
+    [Header("Collision Settings")]
+    [SerializeField] private float _deathForceImpulse = 3f;
+
     private bool _isDead = false;
+    private int _currentScore = 0;
 
     public Rigidbody2D Rigidbody { get; private set; }
     public SpriteRenderer SpriteRenderer { get; private set; }
     public InputReader InputReader { get; private set; }
-    public Mover Mover { get; private set; }
+    public PlayerMovement Mover { get; private set; }
     public PlayerAnimation Animation { get; private set; }
+    public int Score => _currentScore;
 
     private void Awake()
     {
         Rigidbody = GetComponent<Rigidbody2D>();
         SpriteRenderer = GetComponent<SpriteRenderer>();
         InputReader = GetComponent<InputReader>();
-        Mover = GetComponent<Mover>();
+        Mover = GetComponent<PlayerMovement>();
         Animation = GetComponent<PlayerAnimation>();
     }
 
@@ -38,7 +42,13 @@ public class Player : MonoBehaviour, IDamageable
             Animation.TriggerJump();
         }
 
-        Animation.PlayAnimationJumpOrFall(Mover.GetVerticalVelocity(), Mover.IsGrounded());
+        Animation.PlayAnimationJumpOrFall(Mover.GetVerticalVelocity(), Mover.IsGrounded);
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.TryGetComponent<Coin>(out Coin coin))
+            Collect(coin);
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -49,17 +59,13 @@ public class Player : MonoBehaviour, IDamageable
         if (collision.gameObject.TryGetComponent<Enemy>(out Enemy enemy))
         {
             foreach (ContactPoint2D contact in collision.contacts)
-            {
-                if (contact.normal.y < -0.5f)
-                {
-                    enemy.TakeDamage(_damageValue);
-                    Rigidbody.AddForce(Vector2.up * _dieForeceImpulse, ForceMode2D.Impulse);
-                    return;
-                }
-            }
-
-            TakeDamage(enemy.Damage);
+                TakeDamage(enemy.Damage);
         }
+    }
+
+    public void Collect(Coin coin)
+    {
+        _currentScore += coin.ScoreValue;
     }
 
     public void TakeDamage(int damage)
@@ -74,6 +80,8 @@ public class Player : MonoBehaviour, IDamageable
     {
         _isDead = true;
         Animation.PlayAnimationDie();
+
+        Rigidbody.AddForce(Vector2.up * _deathForceImpulse, ForceMode2D.Impulse);
 
         enabled = false;
         Mover.enabled = false;

@@ -2,8 +2,12 @@ using UnityEngine;
 
 public class EnemyStateMachine : MonoBehaviour
 {
+    [Header("Patrol Settings")]
     [SerializeField] private Transform _leftPatrolPoint;
     [SerializeField] private Transform _rightPatrolPoint;
+    [SerializeField] private float _returnThreshold = 0.5f;
+
+    [Header("Detection Settings")]
     [SerializeField] private float _visionRange = 5f;
     [SerializeField] private float _attackRange = 1f;
     [SerializeField] private LayerMask _playerLayer;
@@ -117,11 +121,6 @@ public class EnemyStateMachine : MonoBehaviour
     private void Attack()
     {
         _movement.Stop();
-
-        // «десь может быть логика атаки
-        // Ќапример, нанесение урона игроку
-
-        // ѕосле атаки продолжаем преследование
         _currentState = EnemyStates.Chasing;
     }
 
@@ -131,7 +130,6 @@ public class EnemyStateMachine : MonoBehaviour
         _movement.Move(direction);
         _movement.Flip(direction);
 
-        // ≈сли вернулись к начальной позиции, возобновл€ем патрулирование
         if (Vector2.Distance(transform.position, _startPosition) < 0.5f)
             _currentState = EnemyStates.Patrolling;
     }
