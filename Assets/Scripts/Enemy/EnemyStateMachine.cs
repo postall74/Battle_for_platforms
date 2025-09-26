@@ -13,7 +13,7 @@ public class EnemyStateMachine : MonoBehaviour
     [SerializeField] private LayerMask _playerLayer;
 
     private EnemyStates _currentState = EnemyStates.Patrolling;
-    private EnemyMover _movement;
+    private EnemyMovement _movement;
     private Transform _player;
     private Vector2 _startPosition;
     private bool _isFacingRight = false;
@@ -22,7 +22,7 @@ public class EnemyStateMachine : MonoBehaviour
 
     private void Awake()
     {
-        _movement = GetComponent<EnemyMover>();
+        _movement = GetComponent<EnemyMovement>();
         _startPosition = transform.position;
     }
 

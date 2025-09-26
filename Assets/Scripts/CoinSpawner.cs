@@ -33,6 +33,6 @@ public class CoinSpawner : MonoBehaviour
         int randomIndex = Random.Range (0, _spawnPoints.Length);
         Transform spawnPoint = _spawnPoints[randomIndex];
 
-        Instantiate(_coinPrefab.gameObject, spawnPoint.position, Quaternion.identity);
+        Instantiate(_coinPrefab, spawnPoint.position, Quaternion.identity);
     }
 }

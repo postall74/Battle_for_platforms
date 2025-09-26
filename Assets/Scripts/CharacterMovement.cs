@@ -8,10 +8,10 @@ public abstract class CharacterMovement : MonoBehaviour, IMovable
     [SerializeField] protected Transform _groundCheck;
     [SerializeField] protected LayerMask _groundLayer;
     [SerializeField] protected float _groundCheckDistance = 0.2f;
+    [SerializeField] protected bool _isFacingRight = true;
 
     protected Rigidbody2D _rigidbody;
     protected bool _isGrounded;
-    protected bool _isFacingRight = true;
 
     public bool IsGrounded => _isGrounded;
     public float Speed => _speed;
@@ -52,13 +52,13 @@ public abstract class CharacterMovement : MonoBehaviour, IMovable
         if (direction == 0)
             return;
 
-        bool shoodFaceRight = direction > 0;
+        bool shouldFaceRight = direction > 0;
 
-        if (shoodFaceRight != _isFacingRight)
+        if (shouldFaceRight != _isFacingRight)
         {
-            _isFacingRight = shoodFaceRight;
+            _isFacingRight = shouldFaceRight;
             Vector3 scale = transform.localScale;
-            scale.x = Mathf.Abs(scale.x) * (_isFacingRight ? -1 : 1);
+            scale.x *= -1;
             transform.localScale = scale;
         }
     }

@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
-public class EnemyMover : CharacterMovement
+public class EnemyMovement : CharacterMovement
 {
     public void Stop()
     {
