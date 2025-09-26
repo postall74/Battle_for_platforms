@@ -1,4 +1,4 @@
 public interface IAnimated
 {
-    public void PlayAnimationRun(float horizontalSpeed);
+    public void HandleMovement(float horizontalSpeed);
 }

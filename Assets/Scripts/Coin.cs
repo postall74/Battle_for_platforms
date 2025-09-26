@@ -1,7 +1,8 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
-public class Coin : MonoBehaviour
+public class Coin : MonoBehaviour, ICollectible
 {
     [Header("Coin Settings")]
     [SerializeField] private float _respawnTime = 10f;
@@ -11,6 +12,8 @@ public class Coin : MonoBehaviour
     private SpriteRenderer _coinRenderer;
     private WaitForSeconds _seconds;
     private bool _isCollected = false;
+
+    public event Action<ICollectible> OnCollected;
 
     public int ScoreValue => _scoreValue;
 
@@ -24,14 +27,24 @@ public class Coin : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (_isCollected == false && collision.TryGetComponent<Player>(out Player player))
-            Collect();
+            BeCollected();
     }
 
-    private void Collect()
+    public void Collect()
     {
+        BeCollected();
+    }
+
+    private void BeCollected()
+    {
+        if (_isCollected)
+            return;
+
         _isCollected = true;
         _coinCollider.enabled = false;
         _coinRenderer.enabled = false;
+
+        OnCollected?.Invoke(this);
         StartCoroutine(RespawnCoinRoutine());
     }
 

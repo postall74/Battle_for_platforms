@@ -1,4 +1,10 @@
+using System;
+
 public interface ICollectible
 {
-    public void Collect(Coin coin);
+    public event Action<ICollectible> OnCollected;
+
+    public int ScoreValue { get; }
+
+    public void Collect();
 }

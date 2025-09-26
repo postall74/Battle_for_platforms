@@ -10,28 +10,27 @@ public class PlayerAnimation : MonoBehaviour, IAnimated
         _animator = GetComponent<Animator>();
     }
 
-    public void PlayAnimationRun(float horizontalSpeed)
+    public void HandleMovement(float horizontalSpeed)
     {
         _animator.SetFloat(PlayerAnimatorData.HorizontalSpeed, Mathf.Abs(horizontalSpeed));
     }
 
-    public void PlayAnimationJumpOrFall(float verticalVelocity, bool isGrounded)
+    public void HandleGroundedChanged(bool isGrounded)
     {
-        _animator.SetFloat(PlayerAnimatorData.VerticalSpeed, verticalVelocity);
         _animator.SetBool(PlayerAnimatorData.IsGrounded, isGrounded);
     }
 
-    public void TriggerJump()
+    public void HandleVerticalVelocity(float verticalVelocity)
+    {
+        _animator.SetFloat(PlayerAnimatorData.VerticalSpeed, verticalVelocity);
+    }
+
+    public void HandleJump()
     {
         _animator.SetTrigger(PlayerAnimatorData.JumpTrigger);
     }
 
-    public void ResetJumpTrigger()
-    {
-        _animator.ResetTrigger(PlayerAnimatorData.JumpTrigger);
-    }
-
-    public void PlayAnimationDie()
+    public void HandleDeath()
     {
         _animator.SetBool(PlayerAnimatorData.IsDie, true);
     }

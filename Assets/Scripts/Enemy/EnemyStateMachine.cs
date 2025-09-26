@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class EnemyStateMachine : MonoBehaviour
@@ -20,6 +21,10 @@ public class EnemyStateMachine : MonoBehaviour
     private bool _isStunned = false;
     private bool _isDead = false;
 
+    public event Action<EnemyStates> OnStateChanged;
+    public event Action<Transform> OnPlayerDetected;
+    public event Action OnPlayerLost;
+
     private void Awake()
     {
         _movement = GetComponent<EnemyMovement>();
@@ -35,9 +40,6 @@ public class EnemyStateMachine : MonoBehaviour
         UpdateState();
     }
 
-    /// <summary>
-    /// Визуализация зон патрулирования, зрения и атаки
-    /// </summary>
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;
@@ -59,18 +61,32 @@ public class EnemyStateMachine : MonoBehaviour
         if (playerCollider != null)
         {
             _player = playerCollider.transform;
+            OnPlayerDetected?.Invoke(_player);
             float distanceToPlayer = Vector2.Distance(transform.position, _player.position);
 
             if (distanceToPlayer <= _attackRange)
-                _currentState = EnemyStates.Attacking;
+                ChangeState(EnemyStates.Attacking);
             else if(distanceToPlayer <= _visionRange && IsPlayerInPatrolRange())
-                _currentState = EnemyStates.Chasing;
+                ChangeState(EnemyStates.Chasing);
             else
-                _currentState = EnemyStates.Returning;
+                ChangeState(EnemyStates.Returning);
         }
-        else if(_currentState != EnemyStates.Patrolling && _currentState != EnemyStates.Returning)
+        else if(_player != null)
         {
-            _currentState = EnemyStates.Returning;
+            _player = null;
+            OnPlayerLost?.Invoke();
+
+            if (_currentState != EnemyStates.Patrolling && _currentState != EnemyStates.Returning)
+                ChangeState(EnemyStates.Returning);
+        }
+    }
+
+    private void ChangeState(EnemyStates newState)
+    {
+        if (_currentState != newState)
+        {
+            _currentState = newState;
+            OnStateChanged?.Invoke(_currentState);
         }
     }
 
@@ -121,7 +137,7 @@ public class EnemyStateMachine : MonoBehaviour
     private void Attack()
     {
         _movement.Stop();
-        _currentState = EnemyStates.Chasing;
+        ChangeState(EnemyStates.Chasing);
     }
 
     private void ReturnToStart()
@@ -131,7 +147,7 @@ public class EnemyStateMachine : MonoBehaviour
         _movement.Flip(direction);
 
         if (Vector2.Distance(transform.position, _startPosition) < 0.5f)
-            _currentState = EnemyStates.Patrolling;
+            ChangeState(EnemyStates.Patrolling);
     }
 
     private bool IsPlayerInPatrolRange()

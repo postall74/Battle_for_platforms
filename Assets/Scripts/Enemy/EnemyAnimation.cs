@@ -10,7 +10,7 @@ public class EnemyAnimation : MonoBehaviour, IAnimated
         _animator = GetComponent<Animator>();
     }
 
-    public void PlayAnimationRun(float horizontalSpeed)
+    public void HandleMovement(float horizontalSpeed)
     {
         _animator.SetFloat(EnemyAnimatorData.HorizontalSpeed, horizontalSpeed);
     }
