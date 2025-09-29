@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 
+[RequireComponent(typeof(EnemyStateMachine), typeof(EnemyMovement), typeof(EnemyAnimation))]
 public partial class Enemy : MonoBehaviour, IDamageable
 {
     [Header("Health settings")]
@@ -18,17 +19,17 @@ public partial class Enemy : MonoBehaviour, IDamageable
     [SerializeField] private float _deathDuration = 3f;
     [SerializeField] private float _deathJumpForce = 5f;
 
+    public event Action<int> OnDamageTaken;
+    public event Action OnDied;
+    public event Action<bool> OnStunnedStateChanged;
+
     private EnemyStateMachine _stateMachine;
     private EnemyMovement _movement;
     private EnemyAnimation _animation;
     private SpriteRenderer _spriteRenderer;
+
     private Color _originalColor;
     private bool _isDead = false;
-
-    public event Action<int> OnDamageTaken;
-    public event Action OnDied;
-    public event Action OnStunned;
-    public event Action OnStunEnded;
 
     public int Damage => _damage;
     public int Health => _health;
@@ -37,17 +38,15 @@ public partial class Enemy : MonoBehaviour, IDamageable
     private void Awake()
     {
         _stateMachine = GetComponent<EnemyStateMachine>();
-        _spriteRenderer = GetComponent<SpriteRenderer>();
-        _animation = GetComponent<EnemyAnimation>();
         _movement = GetComponent<EnemyMovement>();
+        _animation = GetComponent<EnemyAnimation>();
+        _spriteRenderer = GetComponent<SpriteRenderer>();
         _originalColor = _spriteRenderer.color;
 
         _stateMachine.OnStateChanged += HandleStateChanged;
-        _stateMachine.OnPlayerDetected += HandlePlayerDetected; //TODO: надо будет сделать метод для разварота enemy в стороне Player и направиться к нему, для атаки
-        _stateMachine.OnPlayerLost += HandlePlayerLost;  //TODO: надо будет сделать метод для возврата к патрулированию после потери Player из зоны видимости
+        _stateMachine.OnPlayerDetected += HandlePlayerDetected;
 
         _movement.OnMovement += _animation.HandleMovement;
-        _movement.OnGroundedChanged += _animation.HandleGroundedChanged;
     }
 
     private void OnDestroy()
@@ -55,51 +54,49 @@ public partial class Enemy : MonoBehaviour, IDamageable
         if (_stateMachine != null)
         {
             _stateMachine.OnStateChanged -= HandleStateChanged;
-            _stateMachine.OnPlayerDetected -= HandlePlayerDetected; //TODO: надо будет сделать метод для разварота enemy в стороне Player и направиться к нему, для атаки
-            _stateMachine.OnPlayerLost -= HandlePlayerLost;  //TODO: надо будет сделать метод для возврата к патрулированию после потери Player из зоны видимости
+            _stateMachine.OnPlayerDetected -= HandlePlayerDetected;
         }
 
         if (_movement != null)
         {
             _movement.OnMovement -= _animation.HandleMovement;
-            _movement.OnGroundedChanged -= _animation.HandleGroundedChanged;
         }
     }
 
     private void HandleStateChanged(EnemyStates newState)
     {
-        _animation.HandleStateChanged(newState);
-
         switch (newState)
         {
-            case EnemyStates.Attacking:
-                HandleAttack();
+            case EnemyStates.Patrolling:
+            case EnemyStates.Chasing:
+                _animation.HandleMovement(_movement.Speed);
                 break;
+            case EnemyStates.Attacking:
+                _animation.HandleMovement(0);
+                break;
+            case EnemyStates.Returning:
+                _animation.HandleMovement(_movement.Speed);
+                break;
+
         }
     }
 
-    private void HandlePlayerDetected(Transform player)
+    private void HandlePlayerDetected(bool isPlayerDetected)
     {
-
+        if(isPlayerDetected)
+        {
+#if UNITY_EDITOR
+            Debug.Log("Enemy detected player!");
+#endif
+        }
+        else
+        {
+#if UNITY_EDITOR
+            Debug.Log("Enemy lost player!");
+#endif
+        }
     }
 
-    private void HandlePlayerLost()
-    {
-
-    }
-
-    private void HandleAttack()
-    {
-
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="targetColor"></param>
-    /// <param name="duration"></param>
-    /// <param name="resetColor"></param>
-    /// <returns></returns>
     private IEnumerator FlashColorRoutine(Color targetColor, float duration, bool resetColor = true)
     {
         float elapsedTime = 0f;
@@ -115,25 +112,17 @@ public partial class Enemy : MonoBehaviour, IDamageable
             _spriteRenderer.color = _originalColor;
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <returns></returns>
     private IEnumerator StunRoutine()
     {
-        OnStunned?.Invoke();
+        OnStunnedStateChanged?.Invoke(true);
         _stateMachine.SetStunned(true);
 
         yield return StartCoroutine(FlashColorRoutine(Color.red, _stunDuration));
 
-        OnStunEnded?.Invoke();
         _stateMachine.SetStunned(false);
+        OnStunnedStateChanged?.Invoke(false);
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <returns></returns>
     private IEnumerator DieRoutine()
     {
         Collider2D collider = GetComponent<Collider2D>();
@@ -151,10 +140,6 @@ public partial class Enemy : MonoBehaviour, IDamageable
         Destroy(gameObject);
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="damage"></param>
     public void TakeDamage(int damage)
     {
         if (_isDead)
@@ -169,14 +154,13 @@ public partial class Enemy : MonoBehaviour, IDamageable
             StartCoroutine(StunRoutine());
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
     public void Die()
     {
         _isDead = true;
+
         OnDied?.Invoke();
         _stateMachine.SetDead(true);
+
         StartCoroutine(DieRoutine());
     }
 }

@@ -1,4 +1,6 @@
 using System;
+using Unity.VisualScripting;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 public abstract class CharacterMovement : MonoBehaviour, IMovable
@@ -26,6 +28,11 @@ public abstract class CharacterMovement : MonoBehaviour, IMovable
     protected virtual void Awake()
     {
         _rigidbody = GetComponent<Rigidbody2D>();
+
+        if (_rigidbody == null)
+        {
+            _rigidbody.AddComponent<Rigidbody2D>();
+        }
     }
 
     protected virtual void Update()

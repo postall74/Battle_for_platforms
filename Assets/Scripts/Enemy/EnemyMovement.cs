@@ -5,6 +5,7 @@ public class EnemyMovement : CharacterMovement
 {
     public void Stop()
     {
-        _rigidbody.linearVelocity = new Vector2(0, _rigidbody.linearVelocity.y);
+        if(_rigidbody != null)
+            _rigidbody.linearVelocity = new Vector2(0, _rigidbody.linearVelocity.y);
     }
 }

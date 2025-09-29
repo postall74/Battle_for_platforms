@@ -10,17 +10,22 @@ public class Player : MonoBehaviour, IDamageable
     [Header("Collision Settings")]
     [SerializeField] private float _deathForceImpulse = 3f;
 
+    private CollectibleController _collectibleController;
+
     private bool _isDead = false;
+    private int _score = 0;
 
     public event Action<int> OnDamageTaken;
     public event Action OnDied;
+    public event Action<int> OnScoreChanged;
 
     public Rigidbody2D Rigidbody { get; private set; }
     public SpriteRenderer SpriteRenderer { get; private set; }
     public InputReader InputReader { get; private set; }
     public PlayerMovement Movement { get; private set; }
     public PlayerAnimation Animation { get; private set; }
-
+    public int Health => _health;
+    public int Score => _score;
 
     private void Awake()
     {
@@ -29,6 +34,11 @@ public class Player : MonoBehaviour, IDamageable
         InputReader = GetComponent<InputReader>();
         Movement = GetComponent<PlayerMovement>();
         Animation = GetComponent<PlayerAnimation>();
+
+        _collectibleController = FindAnyObjectByType<CollectibleController>();
+
+        if (_collectibleController != null)
+            _collectibleController.OnScoreChanged += HandleScoreChanged;
 
         Movement.OnGroundedChanged += Animation.HandleGroundedChanged;
         Movement.OnMovement += Animation.HandleMovement;
@@ -46,7 +56,7 @@ public class Player : MonoBehaviour, IDamageable
 
     private void FixedUpdate()
     {
-        if (_isDead) 
+        if (_isDead)
             return;
 
         Movement.Move(InputReader.HorizontalDirection);
@@ -55,24 +65,34 @@ public class Player : MonoBehaviour, IDamageable
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (_isDead) 
+        if (_isDead)
             return;
 
         if (collision.gameObject.TryGetComponent<Enemy>(out Enemy enemy))
-        {
-            foreach (ContactPoint2D contact in collision.contacts)
-                TakeDamage(enemy.Damage);
-        }
+            TakeDamage(enemy.Damage);
     }
 
     private void OnDestroy()
     {
+        if (_collectibleController != null)
+            _collectibleController.OnScoreChanged -= HandleScoreChanged;
+
         if (Movement != null)
         {
             Movement.OnGroundedChanged -= Animation.HandleGroundedChanged;
             Movement.OnMovement -= Animation.HandleMovement;
             Movement.OnJumped -= Animation.HandleJump;
         }
+    }
+
+    private void HandleScoreChanged(int newScore)
+    {
+        _score = newScore;
+        OnScoreChanged?.Invoke(_score);
+
+#if UNITY_EDITOR
+        Debug.Log($"Player collected coin! Total score: {_score}");
+#endif
     }
 
     public void TakeDamage(int damage)

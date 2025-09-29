@@ -24,18 +24,29 @@ public class Coin : MonoBehaviour, ICollectible
         _seconds = new WaitForSeconds (_respawnTime);
     }
 
+    private void Start()
+    {
+        CollectibleController controller = FindFirstObjectByType<CollectibleController>();
+
+        if (controller != null)
+            controller.RegisterCollectible(this);
+    }
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (_isCollected == false && collision.TryGetComponent<Player>(out Player player))
-            BeCollected();
+            Collect();
     }
 
-    public void Collect()
+    private void OnDestroy()
     {
-        BeCollected();
+        CollectibleController controller = FindFirstObjectByType<CollectibleController>();
+
+        if (controller != null)
+            controller.UnregisterCollectible(this);
     }
 
-    private void BeCollected()
+    private void Collect()
     {
         if (_isCollected)
             return;

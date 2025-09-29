@@ -1,34 +1,47 @@
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class CollectibleController : MonoBehaviour
 {
-    private int _currentScore;
+    private int _currentScore = 0;
+    private List<ICollectible> _registeredCollectibles = new List<ICollectible>();
 
     public event Action<int> OnScoreChanged;
 
     public int CurrentScore => _currentScore;
 
-    private void OnEnable()
+    private void Start()
     {
-        ICollectible[] collectibles = FindAnyObjectByType<MonoBehaviour>().GetComponents<ICollectible>().ToArray();
+        Coin[] coins = FindObjectsByType<Coin>(FindObjectsSortMode.None);
 
-        foreach (var collectible in collectibles)
-            collectible.OnCollected += HandleItemCollected;
+        foreach (Coin coin in coins)
+            RegisterCollectible(coin);
     }
 
-    private void OnDisable()
+    public void RegisterCollectible(ICollectible collectible)
     {
-        ICollectible[] collectibles = FindAnyObjectByType<MonoBehaviour>().GetComponents<ICollectible>().ToArray();
+        if (_registeredCollectibles.Contains(collectible) == false)
+        {
+            _registeredCollectibles.Add(collectible);
+            collectible.OnCollected += HandleItemCollected;
+        }
+    }
 
-        foreach(var collectible in collectibles)
+    public void UnregisterCollectible(ICollectible collectible)
+    {
+        if (_registeredCollectibles.Contains(collectible))
+        {
+            _registeredCollectibles.Remove(collectible);
             collectible.OnCollected -= HandleItemCollected;
+        }
     }
 
     private void HandleItemCollected(ICollectible collectible)
     {
         _currentScore += collectible.ScoreValue;
         OnScoreChanged?.Invoke(_currentScore);
+
+        UnregisterCollectible(collectible);
     }
 }
