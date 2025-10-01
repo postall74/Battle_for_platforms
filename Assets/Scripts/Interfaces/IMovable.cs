@@ -1,7 +1,8 @@
 public interface IMovable
 {
     public bool IsGrounded { get; }
-    public void Move(float speed);
+    public float Speed { get; }
+    public void Move(float directiond);
     public void Jump();
     public void Flip(float direction);
 }

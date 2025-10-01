@@ -46,7 +46,7 @@ public partial class Enemy : MonoBehaviour, IDamageable
         _stateMachine.OnStateChanged += HandleStateChanged;
         _stateMachine.OnPlayerDetected += HandlePlayerDetected;
 
-        _movement.OnMovement += _animation.HandleMovement;
+        _movement.Movement += _animation.HandleMovement;
     }
 
     private void OnDestroy()
@@ -59,7 +59,7 @@ public partial class Enemy : MonoBehaviour, IDamageable
 
         if (_movement != null)
         {
-            _movement.OnMovement -= _animation.HandleMovement;
+            _movement.Movement -= _animation.HandleMovement;
         }
     }
 

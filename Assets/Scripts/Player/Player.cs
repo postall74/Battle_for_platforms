@@ -1,30 +1,19 @@
 using System;
 using UnityEngine;
 
-[RequireComponent(typeof(PlayerAnimation), typeof(PlayerMovement))]
-public class Player : MonoBehaviour, IDamageable
+[RequireComponent(typeof(PlayerAnimation), typeof(CharacterMovement))]
+public class Player : MonoBehaviour
 {
-    [Header("Health Settings")]
-    [SerializeField] private int _health = 1;
-
-    [Header("Collision Settings")]
-    [SerializeField] private float _deathForceImpulse = 3f;
-
     private CollectibleController _collectibleController;
-
-    private bool _isDead = false;
     private int _score = 0;
 
-    public event Action<int> OnDamageTaken;
-    public event Action OnDied;
-    public event Action<int> OnScoreChanged;
+    public event Action<int> ScoreChanged;
 
     public Rigidbody2D Rigidbody { get; private set; }
     public SpriteRenderer SpriteRenderer { get; private set; }
     public InputReader InputReader { get; private set; }
-    public PlayerMovement Movement { get; private set; }
+    public CharacterMovement Movement { get; private set; }
     public PlayerAnimation Animation { get; private set; }
-    public int Health => _health;
     public int Score => _score;
 
     private void Awake()
@@ -40,9 +29,9 @@ public class Player : MonoBehaviour, IDamageable
         if (_collectibleController != null)
             _collectibleController.OnScoreChanged += HandleScoreChanged;
 
-        Movement.OnGroundedChanged += Animation.HandleGroundedChanged;
-        Movement.OnMovement += Animation.HandleMovement;
-        Movement.OnJumped += Animation.HandleJump;
+        Movement.GroundedChanged += Animation.HandleGroundedChanged;
+        Movement.Movement += Animation.HandleMovement;
+        Movement.Jumped += Animation.HandleJump;
     }
 
     private void Update()
@@ -79,16 +68,16 @@ public class Player : MonoBehaviour, IDamageable
 
         if (Movement != null)
         {
-            Movement.OnGroundedChanged -= Animation.HandleGroundedChanged;
-            Movement.OnMovement -= Animation.HandleMovement;
-            Movement.OnJumped -= Animation.HandleJump;
+            Movement.GroundedChanged -= Animation.HandleGroundedChanged;
+            Movement.Movement -= Animation.HandleMovement;
+            Movement.Jumped -= Animation.HandleJump;
         }
     }
 
     private void HandleScoreChanged(int newScore)
     {
         _score = newScore;
-        OnScoreChanged?.Invoke(_score);
+        ScoreChanged?.Invoke(_score);
 
 #if UNITY_EDITOR
         Debug.Log($"Player collected coin! Total score: {_score}");

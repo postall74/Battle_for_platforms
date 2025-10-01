@@ -1,8 +1,8 @@
 using System;
 using Unity.VisualScripting;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody2D))]
 public abstract class CharacterMovement : MonoBehaviour, IMovable
 {
     [Header("Movement Settings")]
@@ -18,9 +18,9 @@ public abstract class CharacterMovement : MonoBehaviour, IMovable
     protected Rigidbody2D _rigidbody;
     protected bool _isGrounded;
 
-    public event Action<bool> OnGroundedChanged;
-    public event Action<float> OnMovement;
-    public event Action OnJumped;
+    public event Action<bool> GroundedChanged;
+    public event Action<float> Movement;
+    public event Action Jumped;
 
     public bool IsGrounded => _isGrounded;
     public float Speed => _speed;
@@ -28,11 +28,6 @@ public abstract class CharacterMovement : MonoBehaviour, IMovable
     protected virtual void Awake()
     {
         _rigidbody = GetComponent<Rigidbody2D>();
-
-        if (_rigidbody == null)
-        {
-            _rigidbody.AddComponent<Rigidbody2D>();
-        }
     }
 
     protected virtual void Update()
@@ -41,22 +36,21 @@ public abstract class CharacterMovement : MonoBehaviour, IMovable
         CheckGrounded();
 
         if (wasGrounded != _isGrounded)
-            OnGroundedChanged?.Invoke(_isGrounded);
+            GroundedChanged?.Invoke(_isGrounded);
     }
 
     protected virtual void OnDrawGizmos()
     {
-        if (_groundCheck != null)
+        if (_groundCheck == null)
+            return;
+
+        Gizmos.color = Color.red;
+
+        for (int i = 0; i < _groundRaysCount; i++)
         {
-            Gizmos.color = Color.red;
-
-            for (int i = 0; i < _groundRaysCount; i++)
-            {
-                float xOffset = -_groundRaysSpread + (i * _groundRaysSpread);
-                Vector2 rayOrigin = _groundCheck.position + new Vector3(xOffset, 0, 0);
-                Gizmos.DrawLine(rayOrigin, rayOrigin + Vector2.down * _groundCheckDistance);
-            }
-
+            float xOffset = -_groundRaysSpread + (i * _groundRaysSpread);
+            Vector2 rayOrigin = _groundCheck.position + new Vector3(xOffset, 0, 0);
+            Gizmos.DrawLine(rayOrigin, rayOrigin + Vector2.down * _groundCheckDistance);
         }
     }
 
@@ -64,16 +58,16 @@ public abstract class CharacterMovement : MonoBehaviour, IMovable
     {
         Flip(direction);
         _rigidbody.linearVelocity = new Vector2(_speed * direction, _rigidbody.linearVelocity.y);
-        OnMovement?.Invoke(direction);
+        Movement?.Invoke(direction);
     }
 
     public virtual void Jump()
     {
-        if (_isGrounded)
-        {
-            _rigidbody.AddForce(new Vector2(0, _jumpForce), ForceMode2D.Impulse);
-            OnJumped?.Invoke();
-        }    
+        if (_isFacingRight == false)
+            return;
+
+        _rigidbody.AddForce(new Vector2(0, _jumpForce), ForceMode2D.Impulse);
+        Jumped?.Invoke();
     }
 
     public virtual void Flip(float direction)
@@ -83,23 +77,26 @@ public abstract class CharacterMovement : MonoBehaviour, IMovable
 
         bool shouldFaceRight = direction > 0;
 
-        if (shouldFaceRight != _isFacingRight)
-        {
-            _isFacingRight = shouldFaceRight;
-            Vector3 scale = transform.localScale;
-            scale.x *= -1;
-            transform.localScale = scale;
-        }
+        if (shouldFaceRight == _isFacingRight)
+            return;
+
+        _isFacingRight = shouldFaceRight;
+        Vector3 scale = transform.localScale;
+        scale.x *= -1;
+        transform.localScale = scale;
     }
 
     public float GetVerticalVelocity()
     {
-        return _rigidbody.linearVelocity.y;
+        return _rigidbody != null ? _rigidbody.linearVelocity.y : 0f;
     }
 
     protected virtual void CheckGrounded()
     {
         _isGrounded = false;
+
+        if (_groundCheck == null)
+            return;
 
         for (int i = 0; i < _groundRaysCount; i++)
         {
