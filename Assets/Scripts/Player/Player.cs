@@ -7,6 +7,10 @@ public class Player : MonoBehaviour, IDamageable
     [Header("Settings")]
     [SerializeField] private float _deathForceImpulse = 3f;
 
+    private bool _isDead = false;
+    private int _score = 0;
+    private int _health = 1;
+
     public Rigidbody2D Rigidbody { get; private set; }
     public SpriteRenderer SpriteRenderer { get; private set; }
     public InputReader InputReader { get; private set; }
@@ -18,11 +22,7 @@ public class Player : MonoBehaviour, IDamageable
     public event Action<int> DamageTaken;
     public event Action Died;
     public event Action<int> ScoreChanged;
-
-    private bool _isDead = false;
-    private int _score = 0;
-    private int _health = 1;
-
+    
     private void Awake()
     {
         InitializeComponents();

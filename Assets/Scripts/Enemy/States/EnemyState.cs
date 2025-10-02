@@ -3,22 +3,22 @@ using UnityEngine;
 
 public abstract class EnemyState
 {
-    protected EnemyStateMachine _stateMachine;
-    protected EnemyMovement _movement;
-    protected Transform _transform;
+    protected EnemyStateMachine StateMachine;
+    protected EnemyMovement Movement;
+    protected Transform Transform;
 
-    public event Action<EnemyStates> OnStateCompleted; 
+    public event Action<EnemyStateType> StateCompleted; 
 
     protected EnemyState (EnemyStateMachine stateMachine, EnemyMovement movement, Transform transform)
     {
-        _stateMachine = stateMachine;
-        _movement = movement;
-        _transform = transform;
+        StateMachine = stateMachine;
+        Movement = movement;
+        Transform = transform;
     }
 
-    protected void CompleteState(EnemyStates nextState)
+    protected void CompleteState(EnemyStateType nextState)
     {
-        OnStateCompleted?.Invoke(nextState);
+        StateCompleted?.Invoke(nextState);
     }
 
     public abstract void Enter();

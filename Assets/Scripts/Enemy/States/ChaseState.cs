@@ -12,11 +12,7 @@ public class ChaseState : EnemyState
     public override void Enter()
     {
         if (_player != null)
-        {
-            float direction = Mathf.Sign(_player.position.x - _transform.position.x);
-            _movement.Move(direction);
-            _movement.Flip(direction);
-        }
+            UpdateMovement();
     }
 
     public override void Update()
@@ -24,13 +20,18 @@ public class ChaseState : EnemyState
         if (_player == null)
             return;
 
-        float direction = Mathf.Sign(_player.position.x - _transform.position.x);
-        _movement.Move(direction);
-        _movement.Flip(direction);
+        UpdateMovement();
     }
 
     public override void Exit()
     {
-        _movement.Stop();
+        Movement.Stop();
+    }
+
+    private void UpdateMovement()
+    {
+        float direction = Mathf.Sign(_player.position.x - Transform.position.x);
+        Movement.Move(direction);
+        Movement.Flip(direction);
     }
 }

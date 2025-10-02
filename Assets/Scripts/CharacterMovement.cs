@@ -4,6 +4,8 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public class CharacterMovement : MonoBehaviour, IMovable
 {
+    protected Rigidbody2D _rigidbody;
+
     [Header("Movement Settings")]
     [SerializeField] private float _speed = 5f;
     [SerializeField] private float _jumpForce = 15f;
@@ -14,12 +16,11 @@ public class CharacterMovement : MonoBehaviour, IMovable
     [SerializeField] private float _groundRaysSpread = 0.2f;
     [SerializeField] private bool _isFacingRight = true;
 
+    private bool _isGrounded;
+
     public event Action<bool> GroundedChanged;
     public event Action<float> Movement;
     public event Action Jumped;
-
-    private Rigidbody2D _rigidbody;
-    private bool _isGrounded;
 
     public bool IsGrounded => _isGrounded;
     public float Speed => _speed;

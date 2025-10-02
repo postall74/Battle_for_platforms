@@ -14,7 +14,7 @@ public class AttackState : EnemyState
 
     public override void Enter()
     {
-        _movement.Stop();
+        Movement.Stop();
     }
 
     public override void Update()
@@ -22,14 +22,14 @@ public class AttackState : EnemyState
         if (_player == null)
             return;
 
-        float distanceToPlayer = Vector2.Distance(_transform.position, _player.position);
+        float distanceToPlayer = Vector2.Distance(Transform.position, _player.position);
 
         if (distanceToPlayer > _attackRange)
-            CompleteState(EnemyStates.Chasing);
+            CompleteState(EnemyStateType.Chasing);
     }
 
     public override void Exit()
     {
-        _movement.Stop();
+        Movement.Stop();
     }
 }

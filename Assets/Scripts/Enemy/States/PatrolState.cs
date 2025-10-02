@@ -18,26 +18,26 @@ public class PatrolState : EnemyState
     public override void Enter()
     {
         float direction = _isFacingRight ? 1 : -1;
-        _movement.Move(direction);
-        _movement.Flip(direction);
+        Movement.Move(direction);
+        Movement.Flip(direction);
 
     }
 
     public override void Update()
     {
-        if (_isFacingRight && _transform.position.x + _turnBuffer >= _rightPatrolPoint.position.x)
+        if (_isFacingRight && Transform.position.x + _turnBuffer >= _rightPatrolPoint.position.x)
             TurnAround(false);
-        else if (_isFacingRight == false && _transform.position.x - _turnBuffer <= _leftPatrolPoint.position.x)
+        else if (_isFacingRight == false && Transform.position.x - _turnBuffer <= _leftPatrolPoint.position.x)
             TurnAround(true);
 
         float currentDirection = _isFacingRight ? 1 : -1;
-        _movement.Move(currentDirection);
+        Movement.Move(currentDirection);
 
     }
 
     public override void Exit()
     {
-        _movement.Stop();
+        Movement.Stop();
     }
 
     private void TurnAround(bool isFacingRight)
@@ -45,14 +45,14 @@ public class PatrolState : EnemyState
         _isFacingRight = isFacingRight;
         float newDirection = _isFacingRight ? 1 : -1;
 
-        Vector3 newPosition = _transform.position;
+        Vector3 newPosition = Transform.position;
 
         if (_isFacingRight)
             newPosition.x = Mathf.Min(newPosition.x, _rightPatrolPoint.position.x - _turnBuffer);
         else
             newPosition.x = Mathf.Max(newPosition.x, _leftPatrolPoint.position.x + _turnBuffer);
 
-        _transform.position = newPosition;
-        _movement.Flip(newDirection);
+        Transform.position = newPosition;
+        Movement.Flip(newDirection);
     }
 }

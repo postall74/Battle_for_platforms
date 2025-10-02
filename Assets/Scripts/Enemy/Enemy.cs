@@ -19,17 +19,16 @@ public partial class Enemy : MonoBehaviour, IDamageable
     [SerializeField] private float _deathDuration = 3f;
     [SerializeField] private float _deathJumpForce = 5f;
 
-    public event Action<int> OnDamageTaken;
-    public event Action OnDied;
-    public event Action<bool> OnStunnedStateChanged;
-
     private EnemyStateMachine _stateMachine;
     private EnemyMovement _movement;
     private EnemyAnimation _animation;
     private SpriteRenderer _spriteRenderer;
-
     private Color _originalColor;
     private bool _isDead = false;
+
+    public event Action<int> DamageTaken;
+    public event Action Died;
+    public event Action<bool> StunnedStateChanged;
 
     public int Damage => _damage;
     public int Health => _health;
@@ -37,24 +36,63 @@ public partial class Enemy : MonoBehaviour, IDamageable
 
     private void Awake()
     {
+        InitializeComponents();
+        SubscribeToEvents();
+    }
+
+
+    private void OnDestroy()
+    {
+        UnsubscribeFromEvents();
+    }
+
+    public void TakeDamage(int damage)
+    {
+        if (_isDead)
+            return;
+
+        _health -= damage;
+        DamageTaken?.Invoke(damage);
+
+        if (_health <= 0)
+            Die();
+        else
+            StartCoroutine(StunRoutine());
+    }
+
+    public void Die()
+    {
+        _isDead = true;
+
+        Died?.Invoke();
+        _stateMachine.SetDead(true);
+
+        StartCoroutine(DieRoutine());
+    }
+
+    private void InitializeComponents()
+    {
         _stateMachine = GetComponent<EnemyStateMachine>();
         _movement = GetComponent<EnemyMovement>();
         _animation = GetComponent<EnemyAnimation>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
         _originalColor = _spriteRenderer.color;
+    }
 
-        _stateMachine.OnStateChanged += HandleStateChanged;
-        _stateMachine.OnPlayerDetected += HandlePlayerDetected;
+    private void SubscribeToEvents()
+    {
+        _stateMachine.StateChanged += HandleStateChanged;
+        _stateMachine.PlayerDetected += HandlePlayerDetected;
 
         _movement.Movement += _animation.HandleMovement;
     }
 
-    private void OnDestroy()
+    private void UnsubscribeFromEvents()
     {
         if (_stateMachine != null)
         {
-            _stateMachine.OnStateChanged -= HandleStateChanged;
-            _stateMachine.OnPlayerDetected -= HandlePlayerDetected;
+            _stateMachine.StateChanged -= HandleStateChanged;
+            _stateMachine.PlayerDetected -= HandlePlayerDetected;
         }
 
         if (_movement != null)
@@ -63,21 +101,18 @@ public partial class Enemy : MonoBehaviour, IDamageable
         }
     }
 
-    private void HandleStateChanged(EnemyStates newState)
+    private void HandleStateChanged(EnemyStateType newState)
     {
         switch (newState)
         {
-            case EnemyStates.Patrolling:
-            case EnemyStates.Chasing:
+            case EnemyStateType.Patrolling:
+            case EnemyStateType.Chasing:
+            case EnemyStateType.Returning:
                 _animation.HandleMovement(_movement.Speed);
                 break;
-            case EnemyStates.Attacking:
+            case EnemyStateType.Attacking:
                 _animation.HandleMovement(0);
                 break;
-            case EnemyStates.Returning:
-                _animation.HandleMovement(_movement.Speed);
-                break;
-
         }
     }
 
@@ -97,6 +132,17 @@ public partial class Enemy : MonoBehaviour, IDamageable
         }
     }
 
+    private IEnumerator StunRoutine()
+    {
+        StunnedStateChanged?.Invoke(true);
+        _stateMachine.SetStunned(true);
+
+        yield return StartCoroutine(FlashColorRoutine(Color.red, _stunDuration));
+
+        _stateMachine.SetStunned(false);
+        StunnedStateChanged?.Invoke(false);
+    }
+
     private IEnumerator FlashColorRoutine(Color targetColor, float duration, bool resetColor = true)
     {
         float elapsedTime = 0f;
@@ -110,17 +156,6 @@ public partial class Enemy : MonoBehaviour, IDamageable
 
         if (resetColor)
             _spriteRenderer.color = _originalColor;
-    }
-
-    private IEnumerator StunRoutine()
-    {
-        OnStunnedStateChanged?.Invoke(true);
-        _stateMachine.SetStunned(true);
-
-        yield return StartCoroutine(FlashColorRoutine(Color.red, _stunDuration));
-
-        _stateMachine.SetStunned(false);
-        OnStunnedStateChanged?.Invoke(false);
     }
 
     private IEnumerator DieRoutine()
@@ -138,29 +173,5 @@ public partial class Enemy : MonoBehaviour, IDamageable
         yield return StartCoroutine(FlashColorRoutine(Color.red, _deathDuration, false));
 
         Destroy(gameObject);
-    }
-
-    public void TakeDamage(int damage)
-    {
-        if (_isDead)
-            return;
-
-        _health -= damage;
-        OnDamageTaken?.Invoke(damage);
-
-        if (_health <= 0)
-            Die();
-        else
-            StartCoroutine(StunRoutine());
-    }
-
-    public void Die()
-    {
-        _isDead = true;
-
-        OnDied?.Invoke();
-        _stateMachine.SetDead(true);
-
-        StartCoroutine(DieRoutine());
     }
 }

@@ -16,31 +16,28 @@ public class EnemyStateMachine : MonoBehaviour
     [SerializeField] private LayerMask _playerLayer;
 
     private EnemyMovement _movement;
+    private EnemyState _currentState;
+    private EnemyStateType _currentStateType = EnemyStateType.Patrolling;
     private Transform _player;
     private Vector2 _startPosition;
     private bool _isFacingRight = false;
     private bool _isStunned = false;
     private bool _isDead = false;
-
     private bool _playerWasDetected = false;
     private float _lastPlayerDetectionTime = 0f;
 
-    private EnemyState _currentState;
-    private EnemyStates _currentStateType = EnemyStates.Patrolling;
-
-    public event Action<EnemyStates> OnStateChanged;
-    public event Action<bool> OnPlayerDetected;
+    public event Action<EnemyStateType> StateChanged;
+    public event Action<bool> PlayerDetected;
 
     private void Awake()
     {
         _movement = GetComponent<EnemyMovement>();
         _startPosition = transform.position;
-
     }
 
     private void Start()
     {
-        ChangeState(EnemyStates.Patrolling);
+        ChangeState(EnemyStateType.Patrolling);
     }
 
     private void Update()
@@ -49,22 +46,50 @@ public class EnemyStateMachine : MonoBehaviour
             return;
 
         UpdatePlayerDerection();
-
         _currentState?.Update();
     }
 
     private void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.yellow;
 
         if (_leftPatrolPoint != null && _rightPatrolPoint != null)
+        {
+            Gizmos.color = Color.yellow;
             Gizmos.DrawLine(_leftPatrolPoint.position, _rightPatrolPoint.position);
+        }
 
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(transform.position, _visionRange);
 
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, _attackRange);
+    }
+
+    public void SetStunned(bool stunned)
+    {
+        _isStunned = stunned;
+
+        if (stunned)
+        {
+            _movement.Stop();
+            _currentState?.Exit();
+        }
+        else if (_isDead == false)
+        {
+            ChangeState(EnemyStateType.Patrolling);
+        }
+    }
+
+    public void SetDead(bool dead)
+    {
+        _isDead = dead;
+
+        if (dead)
+        {
+            _movement.Stop();
+            _currentState?.Exit();
+            _currentState = null;
+        }
     }
 
     private void UpdatePlayerDerection()
@@ -85,7 +110,7 @@ public class EnemyStateMachine : MonoBehaviour
         if(isPlayerCurrentlyDetected != _playerWasDetected)
         {
             _playerWasDetected = isPlayerCurrentlyDetected;
-            OnPlayerDetected?.Invoke(isPlayerCurrentlyDetected);
+            PlayerDetected?.Invoke(isPlayerCurrentlyDetected);
         }
 
         DetermineNewStateBasedOnPlayer();
@@ -95,27 +120,27 @@ public class EnemyStateMachine : MonoBehaviour
     {
         if (_player == null)
         {
-            if (_currentStateType != EnemyStates.Patrolling && _currentStateType != EnemyStates.Returning)
-                ChangeState(EnemyStates.Returning);
+            if (_currentStateType != EnemyStateType.Patrolling && _currentStateType != EnemyStateType.Returning)
+                ChangeState(EnemyStateType.Returning);
 
             return;
         }
 
         float distanceToPlayer = Vector2.Distance(transform.position, _player.position);
-        EnemyStates newState = _currentStateType;
+        EnemyStateType newState = _currentStateType;
 
         if (distanceToPlayer <= _attackRange)
-            newState = EnemyStates.Attacking;
+            newState = EnemyStateType.Attacking;
         else if (distanceToPlayer <= _visionRange)
-            newState = EnemyStates.Chasing;
+            newState = EnemyStateType.Chasing;
         else
-            newState = EnemyStates.Returning;
+            newState = EnemyStateType.Returning;
 
         if(newState != _currentStateType)
             ChangeState(newState);
     }
 
-    private void ChangeState(EnemyStates newState)
+    private void ChangeState(EnemyStateType newState)
     {
         _currentState?.Exit();
 
@@ -124,54 +149,27 @@ public class EnemyStateMachine : MonoBehaviour
 
         if (_currentState != null)
         {
-            _currentState.OnStateCompleted += HandleStateCompleted;
+            _currentState.StateCompleted += HandleStateCompleted;
             _currentState.Enter();
         }
 
-        OnStateChanged?.Invoke(newState);
+        StateChanged?.Invoke(newState);
     }
 
-    private EnemyState CreateState(EnemyStates state)
+    private EnemyState CreateState(EnemyStateType state)
     {
         return state switch
         {
-            EnemyStates.Patrolling => new PatrolState(this, _movement, transform, _leftPatrolPoint, _rightPatrolPoint, _isFacingRight),
-            EnemyStates.Chasing => new ChaseState(this, _movement, transform, _player),
-            EnemyStates.Attacking => new AttackState(this, _movement, transform, _player, _attackRange),
-            EnemyStates.Returning => new ReturnState(this, _movement, transform, _startPosition, _returnThreshold),
+            EnemyStateType.Patrolling => new PatrolState(this, _movement, transform, _leftPatrolPoint, _rightPatrolPoint, _isFacingRight),
+            EnemyStateType.Chasing => new ChaseState(this, _movement, transform, _player),
+            EnemyStateType.Attacking => new AttackState(this, _movement, transform, _player, _attackRange),
+            EnemyStateType.Returning => new ReturnState(this, _movement, transform, _startPosition, _returnThreshold),
             _ => new PatrolState(this, _movement, transform, _leftPatrolPoint, _rightPatrolPoint, _isFacingRight)
         };
     }
 
-    private void HandleStateCompleted(EnemyStates nextState)
+    private void HandleStateCompleted(EnemyStateType nextState)
     {
         ChangeState(nextState);
-    }
-
-    public void SetStunned(bool stunned)
-    {
-        _isStunned = stunned;
-
-        if (stunned)
-        {
-            _movement.Stop();
-            _currentState?.Exit();
-        }
-        else if(_isDead == false)
-        {
-            ChangeState(EnemyStates.Patrolling);
-        }
-    }
-
-    public void SetDead(bool dead)
-    {
-        _isDead = dead;
-
-        if (dead)
-        {
-            _movement.Stop();
-            _currentState?.Exit();
-            _currentState = null;
-        }
     }
 }

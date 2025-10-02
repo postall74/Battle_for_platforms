@@ -14,29 +14,28 @@ public class ReturnState : EnemyState
 
     public override void Enter()
     {
-        float direction = Mathf.Sign(_startPosition.x - _transform.position.x);
-        _movement.Move(direction);
-        _movement.Flip(direction);
+        UpdateMovement();
     }
 
     public override void Update()
     {
-        float distanceToStart = Vector2.Distance(_transform.position, _startPosition);
+        float distanceToStart = Vector2.Distance(Transform.position, _startPosition);
 
         if (distanceToStart < _returnThreshold)
-        {
-            CompleteState(EnemyStates.Patrolling);
-        }
+            CompleteState(EnemyStateType.Patrolling);
         else
-        {
-            float direction = Mathf.Sign(_startPosition.x - _transform.position.x);
-            _movement.Move(direction);
-            _movement.Flip(direction);
-        }
+            UpdateMovement();
     }
 
     public override void Exit()
     {
-        _movement.Stop();
+        Movement.Stop();
+    }
+
+    private void UpdateMovement()
+    {
+        float direction = Mathf.Sign(_startPosition.x - Transform.position.x);
+        Movement.Move(direction);
+        Movement.Flip(direction);
     }
 }
