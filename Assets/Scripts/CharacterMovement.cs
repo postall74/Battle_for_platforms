@@ -1,36 +1,35 @@
 using System;
-using Unity.VisualScripting;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
-public abstract class CharacterMovement : MonoBehaviour, IMovable
+public class CharacterMovement : MonoBehaviour, IMovable
 {
     [Header("Movement Settings")]
-    [SerializeField] protected float _speed = 5f;
-    [SerializeField] protected float _jumpForce = 15f;
-    [SerializeField] protected Transform _groundCheck;
-    [SerializeField] protected LayerMask _groundLayer;
-    [SerializeField] protected float _groundCheckDistance = 0.2f;
-    [SerializeField] protected int _groundRaysCount = 3;
-    [SerializeField] protected float _groundRaysSpread = 0.2f;
-    [SerializeField] protected bool _isFacingRight = true;
-
-    protected Rigidbody2D _rigidbody;
-    protected bool _isGrounded;
+    [SerializeField] private float _speed = 5f;
+    [SerializeField] private float _jumpForce = 15f;
+    [SerializeField] private Transform _groundCheck;
+    [SerializeField] private LayerMask _groundLayer;
+    [SerializeField] private float _groundCheckDistance = 0.2f;
+    [SerializeField] private int _groundRaysCount = 3;
+    [SerializeField] private float _groundRaysSpread = 0.2f;
+    [SerializeField] private bool _isFacingRight = true;
 
     public event Action<bool> GroundedChanged;
     public event Action<float> Movement;
     public event Action Jumped;
 
+    private Rigidbody2D _rigidbody;
+    private bool _isGrounded;
+
     public bool IsGrounded => _isGrounded;
     public float Speed => _speed;
 
-    protected virtual void Awake()
+    private void Awake()
     {
         _rigidbody = GetComponent<Rigidbody2D>();
     }
 
-    protected virtual void Update()
+    private void Update()
     {
         bool wasGrounded = _isGrounded;
         CheckGrounded();
@@ -39,7 +38,7 @@ public abstract class CharacterMovement : MonoBehaviour, IMovable
             GroundedChanged?.Invoke(_isGrounded);
     }
 
-    protected virtual void OnDrawGizmos()
+    private void OnDrawGizmos()
     {
         if (_groundCheck == null)
             return;
@@ -54,14 +53,14 @@ public abstract class CharacterMovement : MonoBehaviour, IMovable
         }
     }
 
-    public virtual void Move(float direction)
+    public void Move(float direction)
     {
         Flip(direction);
         _rigidbody.linearVelocity = new Vector2(_speed * direction, _rigidbody.linearVelocity.y);
         Movement?.Invoke(direction);
     }
 
-    public virtual void Jump()
+    public  void Jump()
     {
         if (_isFacingRight == false)
             return;
@@ -70,7 +69,7 @@ public abstract class CharacterMovement : MonoBehaviour, IMovable
         Jumped?.Invoke();
     }
 
-    public virtual void Flip(float direction)
+    public void Flip(float direction)
     {
         if (direction == 0)
             return;
@@ -91,7 +90,7 @@ public abstract class CharacterMovement : MonoBehaviour, IMovable
         return _rigidbody != null ? _rigidbody.linearVelocity.y : 0f;
     }
 
-    protected virtual void CheckGrounded()
+    private void CheckGrounded()
     {
         _isGrounded = false;
 
