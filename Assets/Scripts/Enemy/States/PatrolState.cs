@@ -15,14 +15,6 @@ public class PatrolState : EnemyState
         _isFacingRight = startFacingRight;
     }
 
-    public override void Enter()
-    {
-        float direction = _isFacingRight ? 1 : -1;
-        Movement.Move(direction);
-        Movement.Flip(direction);
-
-    }
-
     public override void Update()
     {
         if (_isFacingRight && Transform.position.x + _turnBuffer >= _rightPatrolPoint.position.x)
@@ -35,9 +27,21 @@ public class PatrolState : EnemyState
 
     }
 
+    public override void Enter()
+    {
+        UpdateMovement();
+    }
+
     public override void Exit()
     {
         Movement.Stop();
+    }
+
+    private void UpdateMovement()
+    {
+        float direction = _isFacingRight ? 1 : -1;
+        Movement.Move(direction);
+        Movement.Flip(direction);
     }
 
     private void TurnAround(bool isFacingRight)

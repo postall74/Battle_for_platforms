@@ -1,28 +1,24 @@
 using System;
 using UnityEngine;
+using UnityEngine.Scripting;
 
-[RequireComponent(typeof(PlayerAnimation), typeof(CharacterMovement))]
-public class Player : MonoBehaviour, IDamageable
+[RequireComponent(typeof(PlayerAnimation), typeof(CharacterMovement), typeof(Collector))]
+public class Player : MonoBehaviour
 {
-    [Header("Settings")]
-    [SerializeField] private float _deathForceImpulse = 3f;
+    private Rigidbody2D _rigidbody;
+    private SpriteRenderer _spriteRenderer;
+    private InputReader _inputReader;
+    private CharacterMovement _movement;
+    private PlayerAnimation _animation;
+    private Collector _collector;
 
-    private bool _isDead = false;
-    private int _score = 0;
-    private int _health = 1;
+    public Rigidbody2D Rigidbody => _rigidbody;
+    public SpriteRenderer SpriteRenderer => _spriteRenderer;
+    public InputReader InputReader => _inputReader;
+    public CharacterMovement Movement => _movement;
+    public PlayerAnimation Animation => _animation;
+    public Collector Collector => _collector;
 
-    public Rigidbody2D Rigidbody { get; private set; }
-    public SpriteRenderer SpriteRenderer { get; private set; }
-    public InputReader InputReader { get; private set; }
-    public CharacterMovement Movement { get; private set; }
-    public PlayerAnimation Animation { get; private set; }
-    public int Score => _score;
-    public int Health => _health;
-
-    public event Action<int> DamageTaken;
-    public event Action Died;
-    public event Action<int> ScoreChanged;
-    
     private void Awake()
     {
         InitializeComponents();
@@ -31,34 +27,12 @@ public class Player : MonoBehaviour, IDamageable
 
     private void Update()
     {
-        if (_isDead)
-            return;
-
         HandleInput();
     }
 
     private void FixedUpdate()
     {
-        if (_isDead)
-            return;
-
         HandleMovement();
-    }
-
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (_isDead)
-            return;
-
-        HandleCollectible(collision);
-    }
-
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (_isDead)
-            return;
-
-        HandleEnemyCollision(collision);
     }
 
     private void OnDestroy()
@@ -66,87 +40,43 @@ public class Player : MonoBehaviour, IDamageable
         UnsubscribeFromEvents();
     }
 
-    private void Collect(ICollectible collectible)
-    {
-        _score += collectible.ScoreValue;
-        ScoreChanged?.Invoke(_score);
-        collectible.Collect();
-
-#if UNITY_EDITOR
-        Debug.Log($"Player collected item! Total score: {_score}");
-#endif
-    }
-
-    public void TakeDamage(int damage)
-    {
-        _health -= damage;
-        DamageTaken?.Invoke(_health);
-
-        if (_health <= 0)
-            Die();
-    }
-
     private void InitializeComponents()
     {
-        Rigidbody = GetComponent<Rigidbody2D>();
-        SpriteRenderer = GetComponent<SpriteRenderer>();
-        InputReader = GetComponent<InputReader>();
-        Movement = GetComponent<CharacterMovement>();
-        Animation = GetComponent<PlayerAnimation>();
-    }
-
-    public void Die()
-    {
-        _isDead = true;
-        Died?.Invoke();
-
-        Animation.HandleDeath();
-        Rigidbody.AddForce(Vector2.up * _deathForceImpulse, ForceMode2D.Impulse);
-
-        enabled = false;
-        Movement.enabled = false;
-        Time.timeScale = 0;
+        _rigidbody = GetComponent<Rigidbody2D>();
+        _spriteRenderer = GetComponent<SpriteRenderer>();
+        _inputReader = GetComponent<InputReader>();
+        _movement = GetComponent<CharacterMovement>();
+        _animation = GetComponent<PlayerAnimation>();
+        _collector = GetComponent<Collector>();
     }
 
     private void SubscribeToEvents()
     {
-        Movement.GroundedChanged += Animation.HandleGroundedChanged;
-        Movement.Movement += Animation.HandleMovement;
-        Movement.Jumped += Animation.HandleJump;
+        _movement.GroundedChanged += _animation.HandleGroundedChanged;
+        _movement.Movement += _animation.HandleMovement;
+        _movement.Jumped += _animation.HandleJump;
     }
 
     private void UnsubscribeFromEvents()
     {
-        if (Movement != null)
+        if (_movement != null)
         {
-            Movement.GroundedChanged -= Animation.HandleGroundedChanged;
-            Movement.Movement -= Animation.HandleMovement;
-            Movement.Jumped -= Animation.HandleJump;
+            _movement.GroundedChanged -= _animation.HandleGroundedChanged;
+            _movement.Movement -= _animation.HandleMovement;
+            _movement.Jumped -= _animation.HandleJump;
         }
     }
 
     private void HandleMovement()
     {
-        Movement.Move(InputReader.HorizontalDirection);
-        Animation.HandleVerticalVelocity(Movement.GetVerticalVelocity());
+        _movement.Move(_inputReader.HorizontalDirection);
+        _animation.HandleVerticalVelocity(_movement.GetVerticalVelocity());
 
     }
 
     private void HandleInput()
     {
-        if (InputReader.WasJumpPressed)
-            Movement.Jump();
-    }
-
-    private void HandleCollectible(Collider2D collision)
-    {
-        if (collision.TryGetComponent<ICollectible>(out var collectible))
-            Collect(collectible);
-    }
-
-    private void HandleEnemyCollision(Collision2D collision)
-    {
-        if (collision.gameObject.TryGetComponent<Enemy>(out var enemy))
-            TakeDamage(enemy.Damage);
+        if (_inputReader.WasJumpPressed)
+            _movement.Jump();
     }
 }

@@ -12,7 +12,6 @@ public class EnemyStateMachine : MonoBehaviour
 
     [Header("Detection Settings")]
     [SerializeField] private float _visionRange = 5f;
-    [SerializeField] private float _attackRange = 1f;
     [SerializeField] private LayerMask _playerLayer;
 
     private EnemyMovement _movement;
@@ -21,8 +20,6 @@ public class EnemyStateMachine : MonoBehaviour
     private Transform _player;
     private Vector2 _startPosition;
     private bool _isFacingRight = false;
-    private bool _isStunned = false;
-    private bool _isDead = false;
     private bool _playerWasDetected = false;
     private float _lastPlayerDetectionTime = 0f;
 
@@ -42,9 +39,6 @@ public class EnemyStateMachine : MonoBehaviour
 
     private void Update()
     {
-        if (_isDead || _isStunned)
-            return;
-
         UpdatePlayerDerection();
         _currentState?.Update();
     }
@@ -60,36 +54,6 @@ public class EnemyStateMachine : MonoBehaviour
 
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(transform.position, _visionRange);
-
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, _attackRange);
-    }
-
-    public void SetStunned(bool stunned)
-    {
-        _isStunned = stunned;
-
-        if (stunned)
-        {
-            _movement.Stop();
-            _currentState?.Exit();
-        }
-        else if (_isDead == false)
-        {
-            ChangeState(EnemyStateType.Patrolling);
-        }
-    }
-
-    public void SetDead(bool dead)
-    {
-        _isDead = dead;
-
-        if (dead)
-        {
-            _movement.Stop();
-            _currentState?.Exit();
-            _currentState = null;
-        }
     }
 
     private void UpdatePlayerDerection()
@@ -129,9 +93,7 @@ public class EnemyStateMachine : MonoBehaviour
         float distanceToPlayer = Vector2.Distance(transform.position, _player.position);
         EnemyStateType newState = _currentStateType;
 
-        if (distanceToPlayer <= _attackRange)
-            newState = EnemyStateType.Attacking;
-        else if (distanceToPlayer <= _visionRange)
+        if (distanceToPlayer <= _visionRange)
             newState = EnemyStateType.Chasing;
         else
             newState = EnemyStateType.Returning;
@@ -162,7 +124,6 @@ public class EnemyStateMachine : MonoBehaviour
         {
             EnemyStateType.Patrolling => new PatrolState(this, _movement, transform, _leftPatrolPoint, _rightPatrolPoint, _isFacingRight),
             EnemyStateType.Chasing => new ChaseState(this, _movement, transform, _player),
-            EnemyStateType.Attacking => new AttackState(this, _movement, transform, _player, _attackRange),
             EnemyStateType.Returning => new ReturnState(this, _movement, transform, _startPosition, _returnThreshold),
             _ => new PatrolState(this, _movement, transform, _leftPatrolPoint, _rightPatrolPoint, _isFacingRight)
         };

@@ -21,15 +21,6 @@ public class Coin : MonoBehaviour, ICollectible
         _seconds = new WaitForSeconds (_respawnTime);
     }
 
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (_isCollected)
-            return;
-
-        if (_isCollected == false && collision.TryGetComponent<Player>(out Player player))
-            Collect();
-    }
-
     public void Collect()
     {
         if (_isCollected)

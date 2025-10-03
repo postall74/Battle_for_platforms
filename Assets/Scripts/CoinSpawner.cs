@@ -12,11 +12,11 @@ public class CoinSpawner : MonoBehaviour
 
     private void Start()
     {
-        StartCoroutine(SpawnCoins());
+        StartCoroutine(SpawnCoinsRoutine());
         _seconds = new WaitForSeconds(_spawnInterval);
     }
 
-    private IEnumerator SpawnCoins()
+    private IEnumerator SpawnCoinsRoutine()
     {
         while(enabled)
         {
@@ -30,9 +30,8 @@ public class CoinSpawner : MonoBehaviour
         if (_spawnPoints.Length == 0)
             return;
 
-        int randomIndex = Random.Range (0, _spawnPoints.Length);
+        int randomIndex = Random.Range(0, _spawnPoints.Length);
         Transform spawnPoint = _spawnPoints[randomIndex];
-
         Instantiate(_coinPrefab, spawnPoint.position, Quaternion.identity);
     }
 }

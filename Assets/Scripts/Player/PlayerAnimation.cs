@@ -29,9 +29,4 @@ public class PlayerAnimation : MonoBehaviour, IAnimated
     {
         _animator.SetTrigger(PlayerAnimatorData.JumpTrigger);
     }
-
-    public void HandleDeath()
-    {
-        _animator.SetBool(PlayerAnimatorData.IsDie, true);
-    }
 }

@@ -14,9 +14,4 @@ public class EnemyAnimation : MonoBehaviour, IAnimated
     {
         _animator.SetFloat(EnemyAnimatorData.HorizontalSpeed, horizontalSpeed);
     }
-
-    public void HandleDeath()
-    {
-        _animator.SetTrigger(EnemyAnimatorData.IsDie);
-    }
 }

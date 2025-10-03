@@ -47,7 +47,8 @@ GameObject:
   - component: {fileID: 5881770617558206929}
   - component: {fileID: 8607488162206121754}
   - component: {fileID: 6675786239094099954}
-  - component: {fileID: 1817516772296127949}
+  - component: {fileID: 2783365926618184066}
+  - component: {fileID: 6850056529565613193}
   m_Layer: 7
   m_Name: Player
   m_TagString: Untagged
@@ -224,8 +225,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ebbf3d5dbc343ab4094bd81481a0286e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _health: 1
-  _deathForceImpulse: 3
 --- !u!114 &8607488162206121754
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -250,7 +249,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac6771765818997409e5b989e0070a6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1817516772296127949
+--- !u!114 &2783365926618184066
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -259,7 +258,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 879012773142733920}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 582da673e0db5d548be3ac99adbe12b6, type: 3}
+  m_Script: {fileID: 11500000, guid: c847e0ccfc69f6440a2dbf52b272ce52, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _speed: 5
@@ -272,3 +271,15 @@ MonoBehaviour:
   _groundRaysCount: 3
   _groundRaysSpread: 0.2
   _isFacingRight: 1
+--- !u!114 &6850056529565613193
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 879012773142733920}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f71bb757f824ab345b95b971c8c5e408, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
