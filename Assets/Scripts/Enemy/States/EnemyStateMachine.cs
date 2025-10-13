@@ -10,16 +10,20 @@ public class EnemyStateMachine : MonoBehaviour
     [SerializeField] private Transform _rightPatrolPoint;
     [SerializeField] private float _returnThreshold = 0.5f;
 
+    [Header("Initial Direction")]
+    [SerializeField] private bool _startFacingRight = false;
+
     [Header("Detection Settings")]
     [SerializeField] private float _visionRange = 5f;
     [SerializeField] private LayerMask _playerLayer;
 
     private EnemyMovement _movement;
+    private Flipper _flipper;
     private EnemyState _currentState;
     private EnemyStateType _currentStateType = EnemyStateType.Patrolling;
     private Transform _player;
     private Vector2 _startPosition;
-    private bool _isFacingRight = false;
+    //private bool _isFacingRight = false;
     private bool _playerWasDetected = false;
     private float _lastPlayerDetectionTime = 0f;
 
@@ -29,6 +33,7 @@ public class EnemyStateMachine : MonoBehaviour
     private void Awake()
     {
         _movement = GetComponent<EnemyMovement>();
+        _flipper = GetComponent<Flipper>();
         _startPosition = transform.position;
     }
 
@@ -43,6 +48,7 @@ public class EnemyStateMachine : MonoBehaviour
         _currentState?.Update();
     }
 
+#if UNITY_EDITOR
     private void OnDrawGizmosSelected()
     {
 
@@ -55,6 +61,7 @@ public class EnemyStateMachine : MonoBehaviour
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(transform.position, _visionRange);
     }
+#endif
 
     private void UpdatePlayerDerection()
     {
@@ -122,10 +129,10 @@ public class EnemyStateMachine : MonoBehaviour
     {
         return state switch
         {
-            EnemyStateType.Patrolling => new PatrolState(this, _movement, transform, _leftPatrolPoint, _rightPatrolPoint, _isFacingRight),
-            EnemyStateType.Chasing => new ChaseState(this, _movement, transform, _player),
-            EnemyStateType.Returning => new ReturnState(this, _movement, transform, _startPosition, _returnThreshold),
-            _ => new PatrolState(this, _movement, transform, _leftPatrolPoint, _rightPatrolPoint, _isFacingRight)
+            EnemyStateType.Patrolling => new PatrolState(this, _movement, transform, _leftPatrolPoint, _rightPatrolPoint, _flipper, _startFacingRight),
+            EnemyStateType.Chasing => new ChaseState(this, _movement, transform, _flipper, _player),
+            EnemyStateType.Returning => new ReturnState(this, _movement, transform, _startPosition, _returnThreshold, _flipper),
+            _ => new PatrolState(this, _movement, transform, _leftPatrolPoint, _rightPatrolPoint, _flipper, _startFacingRight)
         };
     }
 

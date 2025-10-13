@@ -16,7 +16,7 @@ public class Collector : MonoBehaviour
 
     private void Collect(ICollectible collectible)
     {
-        _currentScore += collectible.ScoreValue;
+        _currentScore++;
         ScoreChanged?.Invoke(_currentScore);
         collectible.Collect();
 

@@ -5,14 +5,11 @@ public class Coin : MonoBehaviour, ICollectible
 {
     [Header("Coin Settings")]
     [SerializeField] private float _respawnTime = 10f;
-    [SerializeField] private int _scoreValue = 1;
 
     private Collider2D _collider;
     private SpriteRenderer _spriteRenderer;
     private WaitForSeconds _seconds;
     private bool _isCollected = false;
-
-    public int ScoreValue => _scoreValue;
 
     private void Awake()
     {

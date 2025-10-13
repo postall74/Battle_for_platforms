@@ -4,5 +4,4 @@ public interface IMovable
     public float Speed { get; }
     public void Move(float directiond);
     public void Jump();
-    public void Flip(float direction);
 }

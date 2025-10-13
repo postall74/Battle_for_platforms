@@ -1,18 +1,20 @@
 using UnityEngine;
 
-[RequireComponent(typeof(EnemyStateMachine), typeof(EnemyMovement), typeof(EnemyAnimation))]
+[RequireComponent(typeof(EnemyStateMachine), typeof(EnemyMovement), typeof(EnemyAnimator))]
 public partial class Enemy : MonoBehaviour
 {
+    [SerializeField] private bool _isFacingRight;
+
     private EnemyStateMachine _stateMachine;
     private EnemyMovement _movement;
-    private EnemyAnimation _animation;
+    private EnemyAnimator _animation;
+    private Flipper _flipper;
 
     private void Awake()
     {
         InitializeComponents();
         SubscribeToEvents();
     }
-
 
     private void OnDestroy()
     {
@@ -23,14 +25,16 @@ public partial class Enemy : MonoBehaviour
     {
         _stateMachine = GetComponent<EnemyStateMachine>();
         _movement = GetComponent<EnemyMovement>();
-        _animation = GetComponent<EnemyAnimation>();
+        _animation = GetComponent<EnemyAnimator>();
+        _flipper = GetComponent<Flipper>();
     }
-
+    
     private void SubscribeToEvents()
     {
         _stateMachine.StateChanged += HandleStateChanged;
         _stateMachine.PlayerDetected += HandlePlayerDetected;
         _movement.Movement += _animation.HandleMovement;
+        _movement.Movement += _flipper.HandleMovement;
     }
 
     private void UnsubscribeFromEvents()
@@ -44,6 +48,7 @@ public partial class Enemy : MonoBehaviour
         if (_movement != null)
         {
             _movement.Movement -= _animation.HandleMovement;
+            _movement.Movement -= _flipper.HandleMovement;
         }
     }
 

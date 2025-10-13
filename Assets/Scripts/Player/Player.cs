@@ -1,23 +1,15 @@
-using System;
 using UnityEngine;
-using UnityEngine.Scripting;
 
-[RequireComponent(typeof(PlayerAnimation), typeof(CharacterMovement), typeof(Collector))]
+[RequireComponent(typeof(PlayerAnimator), typeof(CharacterMovement), typeof(Collector))]
 public class Player : MonoBehaviour
 {
-    private Rigidbody2D _rigidbody;
-    private SpriteRenderer _spriteRenderer;
-    private InputReader _inputReader;
-    private CharacterMovement _movement;
-    private PlayerAnimation _animation;
-    private Collector _collector;
-
-    public Rigidbody2D Rigidbody => _rigidbody;
-    public SpriteRenderer SpriteRenderer => _spriteRenderer;
-    public InputReader InputReader => _inputReader;
-    public CharacterMovement Movement => _movement;
-    public PlayerAnimation Animation => _animation;
-    public Collector Collector => _collector;
+    public Rigidbody2D Rigidbody { get; private set; }
+    public SpriteRenderer SpriteRenderer { get; private set; }
+    public InputReader InputReader { get; private set; }
+    public CharacterMovement Movement { get; private set; }
+    public PlayerAnimator Animator { get; private set; }
+    public Collector Collector { get; private set; }
+    public Flipper Flipper { get; private set; }
 
     private void Awake()
     {
@@ -42,41 +34,44 @@ public class Player : MonoBehaviour
 
     private void InitializeComponents()
     {
-        _rigidbody = GetComponent<Rigidbody2D>();
-        _spriteRenderer = GetComponent<SpriteRenderer>();
-        _inputReader = GetComponent<InputReader>();
-        _movement = GetComponent<CharacterMovement>();
-        _animation = GetComponent<PlayerAnimation>();
-        _collector = GetComponent<Collector>();
+        Rigidbody = GetComponent<Rigidbody2D>();
+        SpriteRenderer = GetComponent<SpriteRenderer>();
+        InputReader = GetComponent<InputReader>();
+        Movement = GetComponent<CharacterMovement>();
+        Animator = GetComponent<PlayerAnimator>();
+        Collector = GetComponent<Collector>();
+        Flipper = GetComponent<Flipper>();
     }
 
     private void SubscribeToEvents()
     {
-        _movement.GroundedChanged += _animation.HandleGroundedChanged;
-        _movement.Movement += _animation.HandleMovement;
-        _movement.Jumped += _animation.HandleJump;
+        Movement.GroundedChanged += Animator.HandleGroundedChanged;
+        Movement.Movement += Animator.HandleMovement;
+        Movement.Movement += Flipper.HandleMovement;
+        Movement.Jumped += Animator.HandleJump;
     }
 
     private void UnsubscribeFromEvents()
     {
-        if (_movement != null)
+        if (Movement != null)
         {
-            _movement.GroundedChanged -= _animation.HandleGroundedChanged;
-            _movement.Movement -= _animation.HandleMovement;
-            _movement.Jumped -= _animation.HandleJump;
+            Movement.GroundedChanged -= Animator.HandleGroundedChanged;
+            Movement.Movement -= Animator.HandleMovement;
+            Movement.Movement -= Flipper.HandleMovement;
+            Movement.Jumped -= Animator.HandleJump;
         }
     }
 
     private void HandleMovement()
     {
-        _movement.Move(_inputReader.HorizontalDirection);
-        _animation.HandleVerticalVelocity(_movement.GetVerticalVelocity());
+        Movement.Move(InputReader.HorizontalDirection);
+        Animator.HandleVerticalVelocity(Movement.GetVerticalVelocity());
 
     }
 
     private void HandleInput()
     {
-        if (_inputReader.WasJumpPressed)
-            _movement.Jump();
+        if (InputReader.WasJumpPressed)
+            Movement.Jump();
     }
 }

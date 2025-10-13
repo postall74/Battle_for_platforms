@@ -1,34 +1,19 @@
 using System;
 using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody2D))]
-public class CharacterMovement : MonoBehaviour, IMovable
+public class GroundChecker : MonoBehaviour
 {
-    [Header("Movement Settings")]
-    [SerializeField] private float _speed = 5f;
-    [SerializeField] private float _jumpForce = 15f;
     [SerializeField] private Transform _groundCheck;
     [SerializeField] private LayerMask _groundLayer;
     [SerializeField] private float _groundCheckDistance = 0.2f;
     [SerializeField] private int _groundRaysCount = 3;
     [SerializeField] private float _groundRaysSpread = 0.2f;
-    [SerializeField] private bool _isFacingRight = true;
 
-    private Rigidbody2D _rigidbody;
     private bool _isGrounded;
 
     public event Action<bool> GroundedChanged;
-    public event Action<float> Movement;
-    public event Action Jumped;
-
-    public Rigidbody2D Rigidbody => _rigidbody;
+    
     public bool IsGrounded => _isGrounded;
-    public float Speed => _speed;
-
-    private void Awake()
-    {
-        _rigidbody = GetComponent<Rigidbody2D>();
-    }
 
     private void Update()
     {
@@ -39,6 +24,7 @@ public class CharacterMovement : MonoBehaviour, IMovable
             GroundedChanged?.Invoke(_isGrounded);
     }
 
+#if UNITY_EDITOR
     private void OnDrawGizmos()
     {
         if (_groundCheck == null)
@@ -53,43 +39,7 @@ public class CharacterMovement : MonoBehaviour, IMovable
             Gizmos.DrawLine(rayOrigin, rayOrigin + Vector2.down * _groundCheckDistance);
         }
     }
-
-    public void Move(float direction)
-    {
-        Flip(direction);
-        _rigidbody.linearVelocity = new Vector2(_speed * direction, _rigidbody.linearVelocity.y);
-        Movement?.Invoke(direction);
-    }
-
-    public  void Jump()
-    {
-        if (_isGrounded == false)
-            return;
-
-        _rigidbody.AddForce(new Vector2(0, _jumpForce), ForceMode2D.Impulse);
-        Jumped?.Invoke();
-    }
-
-    public void Flip(float direction)
-    {
-        if (direction == 0)
-            return;
-
-        bool shouldFaceRight = direction > 0;
-
-        if (shouldFaceRight == _isFacingRight)
-            return;
-
-        _isFacingRight = shouldFaceRight;
-        Vector3 scale = transform.localScale;
-        scale.x *= -1;
-        transform.localScale = scale;
-    }
-
-    public float GetVerticalVelocity()
-    {
-        return _rigidbody != null ? _rigidbody.linearVelocity.y : 0f;
-    }
+#endif
 
     private void CheckGrounded()
     {
