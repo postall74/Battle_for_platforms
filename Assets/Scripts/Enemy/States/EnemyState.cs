@@ -7,9 +7,9 @@ public abstract class EnemyState
     protected EnemyMovement Movement;
     protected Transform Transform;
 
-    public event Action<EnemyStateType> StateCompleted; 
+    public event Action<EnemyStateType> StateCompleted;
 
-    protected EnemyState (EnemyStateMachine stateMachine, EnemyMovement movement, Transform transform)
+    protected EnemyState(EnemyStateMachine stateMachine, EnemyMovement movement, Transform transform)
     {
         StateMachine = stateMachine;
         Movement = movement;

@@ -1,46 +1,38 @@
 using System;
 using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody2D), typeof(GroundChecker), typeof(Flipper))]
+[RequireComponent(typeof(Rigidbody2D), typeof(Flipper), typeof(GroundChecker))]
 public class CharacterMovement : MonoBehaviour, IMovable
 {
     [Header("Movement Settings")]
     [SerializeField] private float _speed = 5f;
     [SerializeField] private float _jumpForce = 15f;
 
-    private GroundChecker _groundChecker;
-    private Flipper _flipper;
-
     public event Action<float> Movement;
     public event Action Jumped;
-    public event Action<bool> GroundedChanged;
 
     public Rigidbody2D Rigidbody { get; private set; }
-    public bool IsGrounded => _groundChecker.IsGrounded;
+    public Flipper Flipper { get; private set; }
+    public GroundChecker GroundChecker { get; private set; }
+
+    public bool IsGrounded => GroundChecker != null ? GroundChecker.IsGrounded : false;
     public float Speed => _speed;
 
     private void Awake()
     {
         Rigidbody = GetComponent<Rigidbody2D>();
-        _groundChecker = GetComponent<GroundChecker>();
-        _flipper = GetComponent<Flipper>();
-
-        _groundChecker.GroundedChanged += OnGroundedChanged;
-    }
-
-    private void OnDestroy()
-    {
-        if (_groundChecker != null)
-            _groundChecker.GroundedChanged -= OnGroundedChanged;
+        Flipper = GetComponent<Flipper>();
+        GroundChecker = GetComponent<GroundChecker>();
     }
 
     public void Move(float direction)
     {
+        Flipper.Flip(direction);
         Rigidbody.linearVelocity = new Vector2(_speed * direction, Rigidbody.linearVelocity.y);
         Movement?.Invoke(direction);
     }
 
-    public  void Jump()
+    public void Jump()
     {
         if (IsGrounded == false)
             return;
@@ -52,10 +44,5 @@ public class CharacterMovement : MonoBehaviour, IMovable
     public float GetVerticalVelocity()
     {
         return Rigidbody != null ? Rigidbody.linearVelocity.y : 0f;
-    }
-
-    private void OnGroundedChanged(bool isGrounded)
-    {
-        GroundedChanged?.Invoke(isGrounded);
     }
 }

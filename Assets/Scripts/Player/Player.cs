@@ -10,6 +10,7 @@ public class Player : MonoBehaviour
     public PlayerAnimator Animator { get; private set; }
     public Collector Collector { get; private set; }
     public Flipper Flipper { get; private set; }
+    public GroundChecker GroundChecker { get; private set; }
 
     private void Awake()
     {
@@ -41,23 +42,24 @@ public class Player : MonoBehaviour
         Animator = GetComponent<PlayerAnimator>();
         Collector = GetComponent<Collector>();
         Flipper = GetComponent<Flipper>();
+        GroundChecker = GetComponent<GroundChecker>();
     }
 
     private void SubscribeToEvents()
     {
-        Movement.GroundedChanged += Animator.HandleGroundedChanged;
+        GroundChecker.GroundedChanged += Animator.HandleGroundedChanged;
         Movement.Movement += Animator.HandleMovement;
-        Movement.Movement += Flipper.HandleMovement;
         Movement.Jumped += Animator.HandleJump;
     }
 
     private void UnsubscribeFromEvents()
     {
+        if (GroundChecker != null)
+            GroundChecker.GroundedChanged -= Animator.HandleGroundedChanged;
+
         if (Movement != null)
         {
-            Movement.GroundedChanged -= Animator.HandleGroundedChanged;
             Movement.Movement -= Animator.HandleMovement;
-            Movement.Movement -= Flipper.HandleMovement;
             Movement.Jumped -= Animator.HandleJump;
         }
     }
@@ -66,7 +68,6 @@ public class Player : MonoBehaviour
     {
         Movement.Move(InputReader.HorizontalDirection);
         Animator.HandleVerticalVelocity(Movement.GetVerticalVelocity());
-
     }
 
     private void HandleInput()

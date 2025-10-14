@@ -9,19 +9,17 @@ public class GroundChecker : MonoBehaviour
     [SerializeField] private int _groundRaysCount = 3;
     [SerializeField] private float _groundRaysSpread = 0.2f;
 
-    private bool _isGrounded;
-
     public event Action<bool> GroundedChanged;
-    
-    public bool IsGrounded => _isGrounded;
+
+    public bool IsGrounded { get; private set; }
 
     private void Update()
     {
-        bool wasGrounded = _isGrounded;
+        bool wasGrounded = IsGrounded;
         CheckGrounded();
 
-        if (wasGrounded != _isGrounded)
-            GroundedChanged?.Invoke(_isGrounded);
+        if (wasGrounded != IsGrounded)
+            GroundedChanged?.Invoke(IsGrounded);
     }
 
 #if UNITY_EDITOR
@@ -43,7 +41,7 @@ public class GroundChecker : MonoBehaviour
 
     private void CheckGrounded()
     {
-        _isGrounded = false;
+        IsGrounded = false;
 
         if (_groundCheck == null)
             return;
@@ -56,7 +54,7 @@ public class GroundChecker : MonoBehaviour
 
             if (hit.collider != null)
             {
-                _isGrounded = true;
+                IsGrounded = true;
                 break;
             }
         }

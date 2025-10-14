@@ -1,14 +1,13 @@
 using UnityEngine;
 
 [RequireComponent(typeof(EnemyStateMachine), typeof(EnemyMovement), typeof(EnemyAnimator))]
-public partial class Enemy : MonoBehaviour
+public class Enemy : MonoBehaviour
 {
-    [SerializeField] private bool _isFacingRight;
-
     private EnemyStateMachine _stateMachine;
     private EnemyMovement _movement;
-    private EnemyAnimator _animation;
+    private EnemyAnimator _animator;
     private Flipper _flipper;
+    private GroundChecker _groundChecker;
 
     private void Awake()
     {
@@ -25,16 +24,16 @@ public partial class Enemy : MonoBehaviour
     {
         _stateMachine = GetComponent<EnemyStateMachine>();
         _movement = GetComponent<EnemyMovement>();
-        _animation = GetComponent<EnemyAnimator>();
+        _animator = GetComponent<EnemyAnimator>();
         _flipper = GetComponent<Flipper>();
+        _groundChecker = GetComponent<GroundChecker>();
     }
-    
+
     private void SubscribeToEvents()
     {
         _stateMachine.StateChanged += HandleStateChanged;
         _stateMachine.PlayerDetected += HandlePlayerDetected;
-        _movement.Movement += _animation.HandleMovement;
-        _movement.Movement += _flipper.HandleMovement;
+        _movement.Movement += _animator.HandleMovement;
     }
 
     private void UnsubscribeFromEvents()
@@ -47,8 +46,7 @@ public partial class Enemy : MonoBehaviour
 
         if (_movement != null)
         {
-            _movement.Movement -= _animation.HandleMovement;
-            _movement.Movement -= _flipper.HandleMovement;
+            _movement.Movement -= _animator.HandleMovement;
         }
     }
 
@@ -59,14 +57,14 @@ public partial class Enemy : MonoBehaviour
             case EnemyStateType.Patrolling:
             case EnemyStateType.Chasing:
             case EnemyStateType.Returning:
-                _animation.HandleMovement(_movement.Speed);
+                _animator.HandleMovement(_movement.Speed);
                 break;
         }
     }
 
     private void HandlePlayerDetected(bool isPlayerDetected)
     {
-        if(isPlayerDetected)
+        if (isPlayerDetected)
         {
 #if UNITY_EDITOR
             Debug.Log("Enemy detected player!");

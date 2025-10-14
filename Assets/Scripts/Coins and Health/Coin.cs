@@ -15,7 +15,7 @@ public class Coin : MonoBehaviour, ICollectible
     {
         _collider = GetComponent<Collider2D>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
-        _seconds = new WaitForSeconds (_respawnTime);
+        _seconds = new WaitForSeconds(_respawnTime);
     }
 
     public void Collect()
