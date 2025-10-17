@@ -13,7 +13,7 @@ public class GroundChecker : MonoBehaviour
 
     public bool IsGrounded { get; private set; }
 
-    private void Update()
+    private void FixedUpdate()
     {
         bool wasGrounded = IsGrounded;
         CheckGrounded();
