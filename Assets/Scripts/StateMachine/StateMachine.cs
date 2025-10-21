@@ -1,37 +1,49 @@
 using System;
 using System.Collections.Generic;
+using TMPro;
 
-public class StateMachine
+public class StateMachine : IStateChanger
 {
-    private IState _currentState;
-    private Dictionary<Type, IState> _states = new();
+    private IExitableState _currentState;
+    private Dictionary<Type, IExitableState> _states = new();
 
-    public event Action<IState> StateChanged;
-
-    public void AddState<T>(T state) where T : IState
+    public StateMachine(Dictionary<Type, IExitableState> states)
     {
-        _states[typeof(T)] = state;
+        _states = states;
     }
 
-    public void ChangeState<T>() where T : IState
+    public void ChangeState<TState>() where TState : class, IEnterableState
     {
         _currentState?.Exit();
 
-        if (_states.TryGetValue(typeof(T), out IState newState))
-        {
-            _currentState = newState;
-            _currentState.Enter();
-            StateChanged?.Invoke(_currentState);
-        }
+        var state = GetState<TState>();
+        _currentState = state;
+        state.Enter();
     }
 
-    public void Update()
+    public void ChangeState<TState, TPayload>(TPayload payload) where TState : class, IEnterablePayloadState<TPayload>
     {
-        _currentState?.Update();
+        _currentState?.Exit();
+
+        var state = GetState<TState>();
+        _currentState = state;
+        state.Enter(payload);
     }
 
-    public void FixedUpdate()
+    private TState GetState<TState>() where TState : class, IExitableState
     {
-        _currentState.FixedUpdate();
+        return _states[typeof(TState)] as TState;
+    }
+
+    public void Update(float deltaTime)
+    {
+        if (_currentState is IUpdatableState updatableState)
+            updatableState.Update(deltaTime);
+    }
+
+    public void FixedUpdate(float deltaTime)
+    {
+        if (_currentState is IFixedUpdatableState fixedUpdatableState)
+            fixedUpdatableState.FixedUpdate(deltaTime);
     }
 }

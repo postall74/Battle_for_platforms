@@ -2,19 +2,19 @@ using UnityEngine;
 
 public class EnemyReturnState : EnemyBaseState
 {
-    public EnemyReturnState(EnemyStateContext context, StateMachine stateMachine)
-        : base(context, stateMachine) { }
+    public EnemyReturnState(EnemyStateContext context)
+        : base(context) { }
 
     public override void Enter()
     {
         UpdateMovement();
     }
 
-    public override void Update()
+    public override void Update(float deltaTime)
     {
         if (IsPlayerVisible())
         {
-            StateMachine.ChangeState<EnemyChaseState>();
+            StateChanger.ChangeState<EnemyChaseState>();
             return;
         }
 
@@ -22,7 +22,7 @@ public class EnemyReturnState : EnemyBaseState
 
         if (distanceToStart < Context.ReturnThreshold)
         {
-            StateMachine.ChangeState<EnemyPatrolState>();
+            StateChanger.ChangeState<EnemyPatrolState>();
             return;
         }
 

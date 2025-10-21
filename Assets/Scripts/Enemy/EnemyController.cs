@@ -29,12 +29,12 @@ public class EnemyController : MonoBehaviour
 
     private void Update()
     {
-        _stateMachine.Update();
+        _stateMachine.Update(Time.deltaTime);
     }
 
     private void FixedUpdate()
     {
-        _stateMachine.FixedUpdate();
+        _stateMachine.FixedUpdate(Time.deltaTime);
     }
 
     private void OnDestroy()
@@ -65,12 +65,7 @@ public class EnemyController : MonoBehaviour
             _returnThreshold,
             _playerLayer);
 
-        _stateMachine = new StateMachine();
-        _stateMachine.AddState(new EnemyPatrolState(_stateContext, _stateMachine, _startFacingRight));
-        _stateMachine.AddState(new EnemyChaseState(_stateContext, _stateMachine));
-        _stateMachine.AddState(new EnemyReturnState(_stateContext, _stateMachine));
-        _stateMachine.StateChanged += OnStateChanged;
-
+        _stateMachine = EnemyStateMachineFactory.Create(_stateContext, _startFacingRight);
         _stateMachine.ChangeState<EnemyPatrolState>();
     }
 
@@ -83,16 +78,6 @@ public class EnemyController : MonoBehaviour
     {
         if (_movement != null)
             _movement.Movement -= _animator.HandleMovement;
-
-        if (_stateMachine != null)
-            _stateMachine.StateChanged -= OnStateChanged;
-    }
-
-    private void OnStateChanged(IState newState)
-    {
-#if UNITY_EDITOR
-        Debug.Log($"Enemy changed state to: {newState.GetType().Name}");
-#endif
     }
 
 #if UNITY_EDITOR

@@ -1,3 +1,4 @@
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 public class EnemyPatrolState : EnemyBaseState
@@ -5,33 +6,31 @@ public class EnemyPatrolState : EnemyBaseState
     private bool _isFacingRight;
     private float _turnBuffer = 0.1f;
 
-    public EnemyPatrolState(EnemyStateContext context, StateMachine stateMachine, bool startFacingRight)
-        : base(context, stateMachine)
+    public EnemyPatrolState(EnemyStateContext context, bool startFacingRight)
+        : base(context)
     {
         _isFacingRight = startFacingRight;
     }
 
     public override void Enter()
     {
-        float direction = _isFacingRight ? 1 : -1;
-        Context.Movement.Move(direction);
+        Context.Movement.Move(GetDirection());
     }
 
-    public override void Update()
+    public override void Update(float deltaTime)
     {
         if (IsPlayerVisible())
         {
-            StateMachine.ChangeState<EnemyChaseState>();
+            StateChanger.ChangeState<EnemyChaseState>();
             return;
         }
 
         if (_isFacingRight && Context.Transform.position.x + _turnBuffer >= Context.RightPatrolPoint.position.x)
-            TurnAround(false);
-        else if (!_isFacingRight && Context.Transform.position.x - _turnBuffer <= Context.LeftPatrolPoint.position.x)
-            TurnAround(true);
+            TurnArround(false);
+        else if (_isFacingRight == false && Context.Transform.position.x - _turnBuffer <= Context.LeftPatrolPoint.position.x)
+            TurnArround(true);
 
-        float currentDirection = _isFacingRight ? 1 : -1;
-        Context.Movement.Move(currentDirection);
+        Context.Movement.Move(GetDirection());
     }
 
     public override void Exit()
@@ -39,20 +38,26 @@ public class EnemyPatrolState : EnemyBaseState
         Context.Movement.Stop();
     }
 
-    private void TurnAround(bool isFacingRight)
+    private void TurnArround(bool isFacingRight)
     {
         _isFacingRight = isFacingRight;
-        float newDirection = _isFacingRight ? 1 : -1;
+        float newDirection = GetDirection();
 
         Vector3 newPosition = Context.Transform.position;
 
-        if (_isFacingRight)
+        if(_isFacingRight)
             newPosition.x = Mathf.Min(newPosition.x, Context.RightPatrolPoint.position.x - _turnBuffer);
         else
             newPosition.x = Mathf.Max(newPosition.x, Context.LeftPatrolPoint.position.x + _turnBuffer);
 
         Context.Transform.position = newPosition;
-
         Context.Movement.Move(newDirection);
+
+
+    }
+
+    private float GetDirection()
+    {
+        return _isFacingRight ? 1 : -1;
     }
 }

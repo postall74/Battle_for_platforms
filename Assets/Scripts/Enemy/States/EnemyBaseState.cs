@@ -1,20 +1,23 @@
 using UnityEngine;
 
-public abstract class EnemyBaseState : IState
+public abstract class EnemyBaseState : IEnterableState, IUpdatableState
 {
     protected EnemyStateContext Context { get; }
-    protected StateMachine StateMachine { get; }
+    protected IStateChanger StateChanger { get; private set; }
 
-    protected EnemyBaseState(EnemyStateContext context, StateMachine stateMachine)
+    protected EnemyBaseState(EnemyStateContext context)
     {
         Context = context;
-        StateMachine = stateMachine;
     }
 
-    public virtual void Enter() { }
-    public virtual void Exit() { }
-    public virtual void FixedUpdate() { }
-    public virtual void Update() { }
+    public void SetStateMachine(IStateChanger stateChanger)
+    {
+        StateChanger = stateChanger;
+    }
+
+    public abstract void Enter();
+    public abstract void Exit();
+    public abstract void Update(float deltaTime);
 
     protected bool IsPlayerVisible()
     {

@@ -2,8 +2,8 @@ using UnityEngine;
 
 public class EnemyChaseState : EnemyBaseState
 {
-    public EnemyChaseState(EnemyStateContext context, StateMachine stateMachine)
-        : base(context, stateMachine) { }
+    public EnemyChaseState(EnemyStateContext context)
+        : base(context) { }
 
     public override void Enter()
     {
@@ -11,11 +11,11 @@ public class EnemyChaseState : EnemyBaseState
             UpdateMovement();
     }
 
-    public override void Update()
+    public override void Update(float deltaTime)
     {
-        if (Context.Player == null || !IsPlayerVisible())
+        if (Context.Player != null || IsPlayerVisible() == false)
         {
-            StateMachine.ChangeState<EnemyReturnState>();
+            StateChanger.ChangeState<EnemyReturnState>();
             return;
         }
 
@@ -29,7 +29,8 @@ public class EnemyChaseState : EnemyBaseState
 
     private void UpdateMovement()
     {
-        if (Context.Player == null) return;
+        if (Context.Player == null)
+            return;
 
         float direction = Mathf.Sign(Context.Player.position.x - Context.Transform.position.x);
         Context.Movement.Move(direction);
