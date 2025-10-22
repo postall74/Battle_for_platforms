@@ -1,0 +1,37 @@
+using System.Collections;
+using UnityEngine;
+
+public class CoinSpawner : MonoBehaviour
+{
+    [Header("Spawn Settings")]
+    [SerializeField] private GameObject _coinPrefab;
+    [SerializeField] private Transform[] _spawnPoints;
+    [SerializeField] private float _spawnInterval = 5f;
+
+    private WaitForSeconds _seconds;
+
+    private void Start()
+    {
+        StartCoroutine(SpawnCoinsRoutine());
+        _seconds = new WaitForSeconds(_spawnInterval);
+    }
+
+    private IEnumerator SpawnCoinsRoutine()
+    {
+        while(enabled)
+        {
+            yield return _seconds;
+            SpawnCoinAtRandomPoint();
+        }
+    }
+
+    private void SpawnCoinAtRandomPoint()
+    {
+        if (_spawnPoints.Length == 0)
+            return;
+
+        int randomIndex = Random.Range(0, _spawnPoints.Length);
+        Transform spawnPoint = _spawnPoints[randomIndex];
+        Instantiate(_coinPrefab, spawnPoint.position, Quaternion.identity);
+    }
+}

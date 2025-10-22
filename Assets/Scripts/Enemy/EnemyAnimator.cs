@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [RequireComponent(typeof(Animator))]
-public class PlayerAnimation : MonoBehaviour
+public class EnemyAnimator : MonoBehaviour, IAnimated
 {
     private Animator _animator;
 
@@ -10,8 +10,8 @@ public class PlayerAnimation : MonoBehaviour
         _animator = GetComponent<Animator>();
     }
 
-    public void PlayAnimationRun(float speed)
+    public void HandleMovement(float horizontalSpeed)
     {
-        _animator.SetFloat(PlayerAnimatorData.Speed, Mathf.Abs(speed));
+        _animator.SetFloat(EnemyAnimatorData.HorizontalSpeed, horizontalSpeed);
     }
 }
