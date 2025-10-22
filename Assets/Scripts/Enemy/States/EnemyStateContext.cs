@@ -2,19 +2,6 @@ using UnityEngine;
 
 public class EnemyStateContext
 {
-    public Transform Transform { get; }
-    public EnemyMovement Movement { get; }
-    public EnemyAnimator Animator { get; }
-    public Flipper Flipper { get; }
-    public GroundChecker GroundChecker { get; }
-    public Transform Player { get; set; }
-    public Vector2 StartPosition { get; }
-    public Transform LeftPatrolPoint { get; }
-    public Transform RightPatrolPoint { get; }
-    public float VisionRange { get; }
-    public float ReturnThreshold { get; }
-    public LayerMask PlayerLayer { get; }
-
     public EnemyStateContext(Transform transform, EnemyMovement movement, EnemyAnimator animator, Flipper flipper, GroundChecker groundChecker, Vector2 startPosition,
                              Transform leftPatrolPoint, Transform rightPatrolPoint, float visionRange, float returnThreshold, LayerMask playerLayer)
     {
@@ -30,4 +17,17 @@ public class EnemyStateContext
         ReturnThreshold = returnThreshold;
         PlayerLayer = playerLayer;
     }
+
+    public Transform Transform { get; }
+    public EnemyMovement Movement { get; }
+    public EnemyAnimator Animator { get; }
+    public Flipper Flipper { get; }
+    public GroundChecker GroundChecker { get; }
+    public Transform Player { get; set; }
+    public Vector2 StartPosition { get; }
+    public Transform LeftPatrolPoint { get; }
+    public Transform RightPatrolPoint { get; }
+    public float VisionRange { get; }
+    public float ReturnThreshold { get; }
+    public LayerMask PlayerLayer { get; }
 }

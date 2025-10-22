@@ -19,10 +19,12 @@ public class EnemyController : MonoBehaviour
 
     private StateMachine _stateMachine;
     private EnemyStateContext _stateContext;
+    private IEnemyStateMachineFactory _stateMachineFactory;
 
     private void Awake()
     {
         InitializeComponents();
+        InitializeStateMachineFactory();
         InitializeStateMachine();
         SubscribeToEvents();
     }
@@ -50,6 +52,11 @@ public class EnemyController : MonoBehaviour
         _groundChecker = GetComponent<GroundChecker>();
     }
 
+    private void InitializeStateMachineFactory()
+    {
+        _stateMachineFactory = new EnemyStateMachineFactory();
+    }
+
     private void InitializeStateMachine()
     {
         _stateContext = new EnemyStateContext(
@@ -65,7 +72,7 @@ public class EnemyController : MonoBehaviour
             _returnThreshold,
             _playerLayer);
 
-        _stateMachine = EnemyStateMachineFactory.Create(_stateContext, _startFacingRight);
+        _stateMachine = _stateMachineFactory.Create(_stateContext, _startFacingRight);
         _stateMachine.ChangeState<EnemyPatrolState>();
     }
 

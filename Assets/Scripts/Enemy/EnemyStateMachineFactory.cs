@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 
-public static class EnemyStateMachineFactory
+public class EnemyStateMachineFactory : IEnemyStateMachineFactory
 {
-    public static StateMachine Create(EnemyStateContext context, bool isStartFacingRight)
+    public StateMachine Create(EnemyStateContext context, bool startFacingRight)
     {
         var states = new Dictionary<Type, IExitableState>
         {
-            [typeof(EnemyPatrolState)] = new EnemyPatrolState(context, isStartFacingRight),
+            [typeof(EnemyPatrolState)] = new EnemyPatrolState(context, startFacingRight),
             [typeof(EnemyChaseState)] = new EnemyChaseState(context),
             [typeof(EnemyReturnState)] = new EnemyReturnState(context)
         };
