@@ -1,6 +1,3 @@
-using UnityEditor.SceneManagement;
-using UnityEngine;
-
 public class EnemyPatrolState : EnemyBaseState
 {
     private bool _isFacingRight;
@@ -14,7 +11,8 @@ public class EnemyPatrolState : EnemyBaseState
 
     public override void Enter()
     {
-        Context.Movement.Move(GetDirection());
+        float direction = GetDirection();
+        Context.Movement.Move(direction);
     }
 
     public override void Update(float deltaTime)
@@ -25,12 +23,13 @@ public class EnemyPatrolState : EnemyBaseState
             return;
         }
 
-        if (_isFacingRight && Context.Transform.position.x + _turnBuffer >= Context.RightPatrolPoint.position.x)
-            TurnArround(false);
-        else if (_isFacingRight == false && Context.Transform.position.x - _turnBuffer <= Context.LeftPatrolPoint.position.x)
-            TurnArround(true);
+        if (_isFacingRight && Context.Transform.position.x >= Context.RightPatrolPoint.position.x - _turnBuffer)
+            TurnAround(false); 
+        else if (!_isFacingRight && Context.Transform.position.x <= Context.LeftPatrolPoint.position.x + _turnBuffer)
+            TurnAround(true); 
 
-        Context.Movement.Move(GetDirection());
+        float direction = GetDirection();
+        Context.Movement.Move(direction);
     }
 
     public override void Exit()
@@ -38,22 +37,10 @@ public class EnemyPatrolState : EnemyBaseState
         Context.Movement.Stop();
     }
 
-    private void TurnArround(bool isFacingRight)
+    private void TurnAround(bool isFacingRight) 
     {
         _isFacingRight = isFacingRight;
-        float newDirection = GetDirection();
-
-        Vector3 newPosition = Context.Transform.position;
-
-        if(_isFacingRight)
-            newPosition.x = Mathf.Min(newPosition.x, Context.RightPatrolPoint.position.x - _turnBuffer);
-        else
-            newPosition.x = Mathf.Max(newPosition.x, Context.LeftPatrolPoint.position.x + _turnBuffer);
-
-        Context.Transform.position = newPosition;
-        Context.Movement.Move(newDirection);
-
-
+        Context.Movement.Stop();
     }
 
     private float GetDirection()

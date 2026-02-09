@@ -2,14 +2,15 @@ using UnityEngine;
 
 public class EnemyStateContext
 {
-    public EnemyStateContext(Transform transform, EnemyMovement movement, EnemyAnimator animator, Flipper flipper, GroundChecker groundChecker, Vector2 startPosition,
-                             Transform leftPatrolPoint, Transform rightPatrolPoint, float visionRange, float returnThreshold, LayerMask playerLayer)
+    public EnemyStateContext(Transform transform, EnemyMovement movement, EnemyAnimator animator, Flipper flipper, GroundChecker groundChecker, IAttacker attacker,
+                           Vector2 startPosition, Transform leftPatrolPoint, Transform rightPatrolPoint, float visionRange, float returnThreshold, LayerMask playerLayer)
     {
         Transform = transform;
         Movement = movement;
         Animator = animator;
         Flipper = flipper;
         GroundChecker = groundChecker;
+        Attacker = attacker;
         StartPosition = startPosition;
         LeftPatrolPoint = leftPatrolPoint;
         RightPatrolPoint = rightPatrolPoint;
@@ -23,6 +24,7 @@ public class EnemyStateContext
     public EnemyAnimator Animator { get; }
     public Flipper Flipper { get; }
     public GroundChecker GroundChecker { get; }
+    public IAttacker Attacker { get; }
     public Transform Player { get; set; }
     public Vector2 StartPosition { get; }
     public Transform LeftPatrolPoint { get; }
