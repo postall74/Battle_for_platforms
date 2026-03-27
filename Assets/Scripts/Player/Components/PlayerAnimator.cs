@@ -30,6 +30,11 @@ public class PlayerAnimator : MonoBehaviour, IAnimated
         _animator.SetTrigger(PlayerAnimatorData.JumpTrigger);
     }
 
+    public void HandleAttack()
+    {
+        _animator.SetTrigger(PlayerAnimatorData.AttackTrigger);
+    }
+
     public void HandleDeath()
     {
         _animator.SetTrigger(PlayerAnimatorData.DeathTrigger);

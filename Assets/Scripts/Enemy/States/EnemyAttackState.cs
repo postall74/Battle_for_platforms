@@ -6,31 +6,35 @@ public class EnemyAttackState : EnemyBaseState
     private float _lastAttackTime;
     private bool _isAttacking;
 
-    public EnemyAttackState(EnemyStateContext context) : base(context)
-    { }
+    public EnemyAttackState(EnemyStateContext context) 
+        : base(context) { }
 
     public override void Enter()
     {
         _lastAttackTime = -_attackCooldown;
         _isAttacking = false;
+        Context.Movement.Stop();
     }
 
     public override void Update(float deltaTime)
     {
-        if(Context.Player == null || IsPlayerVisible() == false)
+        // Проверяем, видим ли игрока и в зоне ли атаки
+        if(Context.Player == null)
         {
             StateChanger.ChangeState<EnemyChaseState>();
             return;
         }
 
-        if (IsPlayerInAttackRange() == false)
+        if (!IsPlayerInAttackRange())
         {
             StateChanger.ChangeState<EnemyChaseState>();
             return;
         }
 
+        //Останавливаемся для атаки
         Context.Movement.Stop();
 
+        //Проверяем кулдаун атаки
         if (Time.time >= _lastAttackTime + _attackCooldown)
         {
             Attack();

@@ -9,6 +9,7 @@ using UnityEngine;
 [RequireComponent(typeof(Flipper))]
 [RequireComponent(typeof(GroundChecker))]
 [RequireComponent(typeof(SpriteBlinker))]
+[RequireComponent(typeof(PlayerAttack))]
 public class PlayerController : MonoBehaviour
 {
     [Header("Dependencies")]
@@ -21,12 +22,14 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Flipper _flipper;
     [SerializeField] private GroundChecker _groundChecker;
     [SerializeField] private SpriteBlinker _spriteBlinker;
+    [SerializeField] private PlayerAttack _playerAttack;
 
     private bool _isDead = false;
 
     public HealthComponent Health => _healthComponent;
     public CharacterMovement Movement => _movement;
     public InputReader InputReader => _inputReader;
+    public PlayerAttack PlayerAttack => _playerAttack;
 
     private void Awake()
     {
@@ -36,14 +39,17 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (_isDead) return;
+        if (_isDead) 
+            return;
 
         HandleInput();
+        HandleAttack();
     }
 
     private void FixedUpdate()
     {
-        if (_isDead) return;
+        if (_isDead) 
+            return;
 
         HandleMovement();
     }
@@ -64,6 +70,7 @@ public class PlayerController : MonoBehaviour
         _flipper = GetComponent<Flipper>();
         _groundChecker = GetComponent<GroundChecker>();
         _spriteBlinker = GetComponent<SpriteBlinker>();
+        _playerAttack = GetComponent<PlayerAttack>();
 
         _healthCollector.Initialize(_healthComponent);
     }
@@ -137,6 +144,11 @@ public class PlayerController : MonoBehaviour
             _movement.Jump();
     }
 
+    private void HandleAttack()
+    {
+        // Атака обрабатывается в PlayerAttack через клавишу E
+    }
+
     private void HandleMovement()
     {
         _movement.Move(_inputReader.HorizontalDirection);
@@ -146,17 +158,29 @@ public class PlayerController : MonoBehaviour
     private void OnDied()
     {
         _isDead = true;
+        // Отключаем управление
         enabled = false;
+
+        // Отключаем атаку
+        if (_playerAttack != null)
+            _playerAttack.enabled = false;
+
+        //Запускаем анимацию
         _animator.HandleDeath();
+
+        //Отключаем движение
         _movement.enabled = false;
+
+        //Отключаем коллайдеры
         var collider = GetComponent<Collider2D>();
+
         if (collider != null)
             collider.enabled = false;
 
-        Debug.Log("Player died! Game Over or Respawn...");
+        Debug.Log("Player died! Game over or Respawn...");
 
         // Для респавна можно добавить:
-        Invoke(nameof(Respawn), 3f);
+        // Invoke(nameof(Respawn), 3f);
     }
 
     private void Respawn()
@@ -167,7 +191,11 @@ public class PlayerController : MonoBehaviour
         enabled = true;
         _movement.enabled = true;
 
+        if (_playerAttack != null)
+            _playerAttack.enabled = true;
+
         var collider = GetComponent<Collider2D>();
+
         if (collider != null)
             collider.enabled = true;
     }
