@@ -1,64 +1,82 @@
+using BattleForPlatforms.Interfaces.States;
 using UnityEngine;
 
-/// <summary>
-/// Состояние преследования игрока врагом.
-/// Враг движется к игроку, пока видит его.
-/// Если игрок пропадает из видимости, враг переходит в состояние возврата.
-/// </summary>
-public class EnemyChaseState : EnemyBaseState
+namespace BattleForPlatforms.Enemy.States
 {
     /// <summary>
-    /// Конструктор состояния преследования.
+    /// Состояние преследования врага.
+    /// Враг следует за игроком, пока видит его.
+    /// Если игрок выходит из зоны видимости, враг возвращается к патрулированию.
     /// </summary>
-    /// <param name="context">Контекст состояния врага.</param>
-    public EnemyChaseState(EnemyStateContext context)
-        : base(context) { }
-
-    /// <summary>
-    /// Вход в состояние преследования.
-    /// Начинает движение к игроку если он найден.
-    /// </summary>
-    public override void Enter()
+    public class EnemyChaseState : EnemyBaseState
     {
-        if (Context.Player != null)
-            UpdateMovement();
-    }
+        private float _chaseSpeed = 3.5f;
 
-    /// <summary>
-    /// Обновление состояния преследования.
-    /// Проверяет видимость игрока и обновляет движение.
-    /// </summary>
-    /// <param name="deltaTime">Время прошедшее с последнего кадра.</param>
-    public override void Update(float deltaTime)
-    {
-        // Если игрок потерян или не виден, переходим в состояние возврата
-        if (Context.Player == null || IsPlayerVisible() == false)
+        public EnemyChaseState(EnemyContext context) : base(context)
         {
-            StateChanger.ChangeState<EnemyReturnState>();
-            return;
         }
 
-        UpdateMovement();
-    }
+        /// <summary>
+        /// Вход в состояние преследования.
+        /// Устанавливает скорость преследования.
+        /// </summary>
+        public override void Enter()
+        {
+            Context.Animator?.SetMoveSpeed(_chaseSpeed);
+        }
 
-    /// <summary>
-    /// Выход из состояния преследования.
-    /// Останавливает движение врага.
-    /// </summary>
-    public override void Exit()
-    {
-        Context.Movement.Stop();
-    }
+        /// <summary>
+        /// Обновление состояния преследования каждый кадр.
+        /// Проверяет, не потерял ли враг игрока из виду.
+        /// </summary>
+        public override void Update()
+        {
+            CheckForPlayerLoss();
+        }
 
-    /// <summary>
-    /// Обновление движения врага в сторону игрока.
-    /// </summary>
-    private void UpdateMovement()
-    {
-        if (Context.Player == null)
-            return;
+        /// <summary>
+        /// Фиксированное обновление состояния преследования.
+        /// Выполняет движение к игроку.
+        /// </summary>
+        public override void FixedUpdate()
+        {
+            ChasePlayer();
+        }
 
-        float direction = Mathf.Sign(Context.Player.position.x - Context.Transform.position.x);
-        Context.Movement.Move(direction);
+        /// <summary>
+        /// Проверка потери видимости игрока.
+        /// Если игрок не виден, переключается на возврат.
+        /// </summary>
+        private void CheckForPlayerLoss()
+        {
+            if (Context.PlayerTransform == null || Context.Vision == null)
+            {
+                ChangeToReturnState();
+                return;
+            }
+
+            if (!Context.Vision.CanSeeTarget(Context.PlayerTransform.position))
+            {
+                ChangeToReturnState();
+            }
+        }
+
+        /// <summary>
+        /// Преследование игрока.
+        /// Движение в направлении игрока.
+        /// </summary>
+        private void ChasePlayer()
+        {
+            if (Context.Movable == null || Context.PlayerTransform == null) return;
+
+            Vector2 direction = (Context.PlayerTransform.position - transform.position).normalized;
+            float moveDirection = Mathf.Sign(direction.x);
+
+            Context.Movable.Move(moveDirection);
+
+            // Разворот в сторону игрока
+            var flipper = (Context.Movable as MonoBehaviour)?.GetComponent<Move.Flipper>();
+            flipper?.FlipToDirection(moveDirection > 0);
+        }
     }
 }

@@ -1,49 +1,94 @@
 using System;
 using System.Collections.Generic;
-using TMPro;
 
-public class StateMachine : IStateChanger
+namespace BattleForPlatforms.StateMachine
 {
-    private IExitableState _currentState;
-    private Dictionary<Type, IExitableState> _states = new();
-
-    public StateMachine(Dictionary<Type, IExitableState> states)
+    /// <summary>
+    /// Универсальная машина состояний.
+    /// Управляет переключением между состояниями, вызывая методы Enter, Exit, Update и FixedUpdate.
+    /// </summary>
+    public class StateMachine
     {
-        _states = states;
-    }
+        private readonly Dictionary<Type, IExitableState> _states;
+        private IExitableState _currentState;
 
-    public void ChangeState<TState>() where TState : class, IEnterableState
-    {
-        _currentState?.Exit();
+        /// <summary>
+        /// Конструктор машины состояний.
+        /// </summary>
+        /// <param name="states">Словарь состояний, где ключ - тип состояния, значение - экземпляр состояния.</param>
+        public StateMachine(Dictionary<Type, IExitableState> states)
+        {
+            _states = states ?? throw new ArgumentNullException(nameof(states));
+        }
 
-        var state = GetState<TState>();
-        _currentState = state;
-        state.Enter();
-    }
+        /// <summary>
+        /// Инициализация машины состояний с запуском начального состояния.
+        /// </summary>
+        /// <typeparam name="T">Тип начального состояния.</typeparam>
+        public void Initialize<T>() where T : IEnterableState
+        {
+            var stateType = typeof(T);
+            
+            if (!_states.ContainsKey(stateType))
+                throw new ArgumentException($"State {stateType.Name} not found in state machine", nameof(T));
 
-    public void ChangeState<TState, TPayload>(TPayload payload) where TState : class, IEnterablePayloadState<TPayload>
-    {
-        _currentState?.Exit();
+            _currentState = _states[stateType];
+            ((IEnterableState)_currentState).Enter();
+        }
 
-        var state = GetState<TState>();
-        _currentState = state;
-        state.Enter(payload);
-    }
+        /// <summary>
+        /// Переключение на новое состояние.
+        /// </summary>
+        /// <typeparam name="T">Тип нового состояния.</typeparam>
+        public void ChangeState<T>() where T : IEnterableState
+        {
+            var stateType = typeof(T);
+            
+            if (!_states.ContainsKey(stateType))
+                throw new ArgumentException($"State {stateType.Name} not found in state machine", nameof(T));
 
-    private TState GetState<TState>() where TState : class, IExitableState
-    {
-        return _states[typeof(TState)] as TState;
-    }
+            if (_currentState != null)
+                _currentState.Exit();
 
-    public void Update(float deltaTime)
-    {
-        if (_currentState is IUpdatableState updatableState)
-            updatableState.Update(deltaTime);
-    }
+            _currentState = _states[stateType];
+            ((IEnterableState)_currentState).Enter();
+        }
 
-    public void FixedUpdate(float deltaTime)
-    {
-        if (_currentState is IFixedUpdatableState fixedUpdatableState)
-            fixedUpdatableState.FixedUpdate(deltaTime);
+        /// <summary>
+        /// Переключение на новое состояние с передачей параметра.
+        /// </summary>
+        /// <typeparam name="T">Тип нового состояния.</typeparam>
+        /// <param name="payload">Параметр для передачи в состояние.</param>
+        public void ChangeState<T>(object payload) where T : IEnterablePayloadState<object>
+        {
+            var stateType = typeof(T);
+            
+            if (!_states.ContainsKey(stateType))
+                throw new ArgumentException($"State {stateType.Name} not found in state machine", nameof(T));
+
+            if (_currentState != null)
+                _currentState.Exit();
+
+            _currentState = _states[stateType];
+            ((IEnterablePayloadState<object>)_currentState).Enter(payload);
+        }
+
+        /// <summary>
+        /// Обновление текущего состояния (вызывается каждый кадр).
+        /// </summary>
+        public void Update()
+        {
+            if (_currentState is IUpdatableState updatableState)
+                updatableState.Update();
+        }
+
+        /// <summary>
+        /// Фиксированное обновление текущего состояния (вызывается в фиксированный шаг времени).
+        /// </summary>
+        public void FixedUpdate()
+        {
+            if (_currentState is IFixedUpdatableState fixedUpdatableState)
+                fixedUpdatableState.FixedUpdate();
+        }
     }
 }

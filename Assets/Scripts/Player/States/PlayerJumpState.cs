@@ -1,64 +1,57 @@
-using UnityEngine;
+using BattleForPlatforms.Interfaces.States;
 
-/// <summary>
-/// Состояние прыжка игрока.
-/// Обрабатывает нахождение игрока в воздухе.
-/// </summary>
-public class PlayerJumpState : PlayerBaseState
+namespace BattleForPlatforms.Player.States
 {
     /// <summary>
-    /// Конструктор состояния прыжка.
+    /// Состояние прыжка игрока.
+    /// Обрабатывает нахождение в воздухе и приземление.
     /// </summary>
-    /// <param name="context">Контекст состояния игрока.</param>
-    public PlayerJumpState(PlayerContext context)
-        : base(context) { }
-
-    /// <summary>
-    /// Вход в состояние прыжка.
-    /// Выполняет прыжок.
-    /// </summary>
-    public override void Enter()
+    public class PlayerJumpState : PlayerBaseState
     {
-        Context.Movement.Jump();
-    }
-
-    /// <summary>
-    /// Обновление состояния прыжка.
-    /// Проверяет приземление и переключает состояния при необходимости.
-    /// </summary>
-    /// <param name="deltaTime">Время прошедшее с последнего кадра.</param>
-    public override void Update(float deltaTime)
-    {
-        // Проверка на приземление
-        if (IsGrounded())
+        public PlayerJumpState(PlayerContext context) : base(context)
         {
-            StateChanger.ChangeState<PlayerMoveState>();
-            return;
         }
 
-        // Проверка на получение урона
-        if (Context.HealthProvider != null && Context.HealthProvider.IsAlive == false)
+        /// <summary>
+        /// Вход в состояние прыжка.
+        /// Выполняет прыжок и обновляет анимацию.
+        /// </summary>
+        public override void Enter()
         {
-            StateChanger.ChangeState<PlayerDeathState>();
-            return;
+            Context.Movable?.Jump();
+            Context.Animator?.SetInAir(true);
         }
-    }
 
-    /// <summary>
-    /// Физическое обновление состояния прыжка.
-    /// Обновляет анимацию вертикальной скорости.
-    /// </summary>
-    /// <param name="deltaTime">Время прошедшее с последнего физического обновления.</param>
-    public override void FixedUpdate(float deltaTime)
-    {
-        Context.Animator.HandleVerticalVelocity(Context.Movement.GetVerticalVelocity());
-    }
+        /// <summary>
+        /// Обновление состояния прыжка каждый кадр.
+        /// Проверяет приземление.
+        /// </summary>
+        public override void Update()
+        {
+            CheckForLanding();
+            UpdateAnimation();
+        }
 
-    /// <summary>
-    /// Выход из состояния прыжка.
-    /// </summary>
-    public override void Exit()
-    {
-        // Ничего не требуется при выходе
+        /// <summary>
+        /// Проверка приземления.
+        /// </summary>
+        private void CheckForLanding()
+        {
+            if (Context.Movable?.IsGrounded() == true)
+            {
+                ChangeToMoveState();
+            }
+        }
+
+        /// <summary>
+        /// Обновление анимации.
+        /// </summary>
+        private void UpdateAnimation()
+        {
+            if (Context.Animator == null) return;
+
+            float moveSpeed = Mathf.Abs(Context.InputReader?.MoveDirection ?? 0f);
+            Context.Animator.SetMoveSpeed(moveSpeed);
+        }
     }
 }

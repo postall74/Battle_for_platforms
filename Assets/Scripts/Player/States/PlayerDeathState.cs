@@ -1,44 +1,41 @@
-using UnityEngine;
+using BattleForPlatforms.Interfaces.States;
 
-/// <summary>
-/// Состояние смерти игрока.
-/// Обрабатывает смерть персонажа.
-/// </summary>
-public class PlayerDeathState : PlayerBaseState
+namespace BattleForPlatforms.Player.States
 {
     /// <summary>
-    /// Конструктор состояния смерти.
+    /// Состояние смерти игрока.
+    /// Воспроизводит анимацию смерти и завершает игру.
     /// </summary>
-    /// <param name="context">Контекст состояния игрока.</param>
-    public PlayerDeathState(PlayerContext context)
-        : base(context) { }
-
-    /// <summary>
-    /// Вход в состояние смерти.
-    /// Останавливает движение и проигрывает анимацию смерти.
-    /// </summary>
-    public override void Enter()
+    public class PlayerDeathState : PlayerBaseState
     {
-        Context.Movement.Stop();
-        // Здесь можно добавить вызов анимации смерти если она есть
-        // Например: Context.Animator.PlayDeathAnimation();
-    }
+        public PlayerDeathState(PlayerContext context) : base(context)
+        {
+        }
 
-    /// <summary>
-    /// Обновление состояния смерти.
-    /// В данном состоянии игрок не обновляется.
-    /// </summary>
-    /// <param name="deltaTime">Время прошедшее с последнего кадра.</param>
-    public override void Update(float deltaTime)
-    {
-        // Игрок мертв, никаких действий
-    }
+        /// <summary>
+        /// Вход в состояние смерти.
+        /// Воспроизводит анимацию смерти.
+        /// </summary>
+        public override void Enter()
+        {
+            Context.Animator?.SetDead(true);
+            
+            // Отключаем физику и коллайзеры
+            var rigidbody = (Context.Movable as UnityEngine.MonoBehaviour)?.GetComponent<UnityEngine<Rigidbody2D>();
+            if (rigidbody != null)
+            {
+                rigidbody.velocity = UnityEngine.Vector2.zero;
+                rigidbody.gravityScale = 0;
+            }
+        }
 
-    /// <summary>
-    /// Выход из состояния смерти.
-    /// </summary>
-    public override void Exit()
-    {
-        // Ничего не требуется при выходе
+        /// <summary>
+        /// Обновление состояния смерти.
+        /// В данном состоянии игрок не управляется.
+        /// </summary>
+        public override void Update()
+        {
+            // Игрок мертв, управление отключено
+        }
     }
 }

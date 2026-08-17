@@ -1,57 +1,87 @@
 using UnityEngine;
 
-/// <summary>
-/// Компонент для атаки прыжком сверху.
-/// При столкновении с врагом сверху наносит ему урон и отпрыгивает.
-/// </summary>
-[RequireComponent(typeof(Rigidbody2D), typeof(Collider2D))]
-public class JumpAttacker : MonoBehaviour
+namespace BattleForPlatforms.Combat
 {
-    [Header("Настройки атаки")]
-    [SerializeField] private int _damage = 20;
-    [SerializeField] private float _bounceForce = 10f;
-    [SerializeField] private float _stompAngle = 135f;
-
-    private Rigidbody2D _rigidbody;
-    private Collider2D _collider;
-
-    private void Awake()
+    /// <summary>
+    /// Компонент атаки прыжком сверху.
+    /// Проверяет столкновение с врагом сверху и наносит урон при успешной атаке.
+    /// </summary>
+    public class JumpAttacker : MonoBehaviour, IJumpAttackable
     {
-        _rigidbody = GetComponent<Rigidbody2D>();
-        _collider = GetComponent<Collider2D>();
-    }
+        [Header("Настройки атаки")]
+        [SerializeField] private float _jumpAttackDamage = 20f;
+        [SerializeField] private float _jumpBounceForce = 5f;
+        [SerializeField] private float _attackAngleThreshold = 45f;
 
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        // Проверка, что мы падаем вниз
-        if (_rigidbody.linearVelocity.y >= 0)
-            return;
+        /// <summary>
+        /// Количество урона при атаке прыжком.
+        /// </summary>
+        public float JumpAttackDamage => _jumpAttackDamage;
 
-        // Проверка угла столкновения (должно быть сверху)
-        foreach (var contact in collision.contacts)
+        /// <summary>
+        /// Событие, вызываемое при успешной атаке прыжком.
+        /// </summary>
+        public event System.Action<IJumpAttackable> OnJumpAttack;
+
+        private void OnCollisionEnter2D(Collision2D collision)
         {
-            float angle = Vector2.Angle(Vector2.up, contact.normal);
-            if (angle < _stompAngle)
+            var jumpAttackable = collision.gameObject.GetComponent<IJumpAttackable>();
+            
+            if (jumpAttackable == null) return;
+
+            // Проверка угла атаки (должно быть сверху)
+            if (IsAttackFromTop(collision))
             {
-                // Попытка атаковать врага
-                if (collision.gameObject.TryGetComponent<IJumpAttackable>(out var jumpAttackable))
+                if (TryJumpAttack(jumpAttackable))
                 {
-                    if (jumpAttackable.CanBeJumpAttacked)
+                    // Отскок после атаки
+                    Rigidbody2D rb = GetComponent<Rigidbody2D>();
+                    if (rb != null)
                     {
-                        jumpAttackable.OnJumpAttack(transform);
-                        PerformBounce();
+                        rb.velocity = new Vector2(rb.velocity.x, _jumpBounceForce);
                     }
                 }
-                break;
             }
         }
-    }
 
-    /// <summary>
-    /// Выполнить отскок после атаки.
-    /// </summary>
-    private void PerformBounce()
-    {
-        _rigidbody.linearVelocity = new Vector2(_rigidbody.linearVelocity.x, _bounceForce);
+        /// <summary>
+        /// Попытка атаки прыжком сверху.
+        /// </summary>
+        /// <param name="attacker">Атакующий объект.</param>
+        /// <returns>True, если атака успешна, иначе False.</returns>
+        public bool TryJumpAttack(IJumpAttackable attacker)
+        {
+            // В данной реализации мы сами являемся атакующим
+            // Этот метод может быть расширен для других случаев
+            return true;
+        }
+
+        /// <summary>
+        /// Проверка, является ли столкновение атакой сверху.
+        /// </summary>
+        /// <param name="collision">Данные столкновения.</param>
+        /// <returns>True, если атака сверху, иначе False.</returns>
+        private bool IsAttackFromTop(Collision2D collision)
+        {
+            // Получаем точку контакта
+            if (collision.contactCount == 0) return false;
+
+            ContactPoint2D contact = collision.contacts[0];
+            
+            // Вычисляем угол между нормалью контакта и вертикалью
+            float angle = Vector2.Angle(contact.normal, Vector2.down);
+            
+            return angle <= _attackAngleThreshold;
+        }
+
+        /// <summary>
+        /// Нанесение урона цели.
+        /// </summary>
+        /// <param name="target">Цель атаки.</param>
+        public void DealDamage(IHealth target)
+        {
+            target?.TakeDamage(_jumpAttackDamage);
+            OnJumpAttack?.Invoke(this);
+        }
     }
 }

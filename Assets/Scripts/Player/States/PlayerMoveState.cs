@@ -1,68 +1,93 @@
-using UnityEngine;
+using BattleForPlatforms.Interfaces.States;
 
-/// <summary>
-/// Состояние перемещения игрока.
-/// Обрабатывает ввод и перемещение игрока по горизонтали.
-/// </summary>
-public class PlayerMoveState : PlayerBaseState
+namespace BattleForPlatforms.Player.States
 {
     /// <summary>
-    /// Конструктор состояния перемещения.
+    /// Состояние движения игрока.
+    /// Обрабатывает перемещение и прыжки.
     /// </summary>
-    /// <param name="context">Контекст состояния игрока.</param>
-    public PlayerMoveState(PlayerContext context)
-        : base(context) { }
-
-    /// <summary>
-    /// Вход в состояние перемещения.
-    /// </summary>
-    public override void Enter()
+    public class PlayerMoveState : PlayerBaseState
     {
-        // Ничего не требуется при входе
-    }
-
-    /// <summary>
-    /// Обновление состояния перемещения.
-    /// Проверяет ввод для прыжка и переключает состояния при необходимости.
-    /// </summary>
-    /// <param name="deltaTime">Время прошедшее с последнего кадра.</param>
-    public override void Update(float deltaTime)
-    {
-        // Проверка на прыжок
-        if (Context.InputReader.WasJumpPressed && IsGrounded())
+        public PlayerMoveState(PlayerContext context) : base(context)
         {
-            StateChanger.ChangeState<PlayerJumpState>();
-            return;
         }
 
-        // Проверка на получение урона
-        if (Context.HealthProvider != null && Context.HealthProvider.IsAlive == false)
+        /// <summary>
+        /// Вход в состояние движения.
+        /// </summary>
+        public override void Enter()
         {
-            StateChanger.ChangeState<PlayerDeathState>();
-            return;
+            Context.Animator?.SetHit(false);
         }
-    }
 
-    /// <summary>
-    /// Физическое обновление состояния перемещения.
-    /// Обрабатывает перемещение игрока.
-    /// </summary>
-    /// <param name="deltaTime">Время прошедшее с последнего физического обновления.</param>
-    public override void FixedUpdate(float deltaTime)
-    {
-        float direction = Context.InputReader.HorizontalDirection;
-        Context.Movement.Move(direction);
-        
-        // Обновление анимации вертикальной скорости
-        Context.Animator.HandleVerticalVelocity(Context.Movement.GetVerticalVelocity());
-    }
+        /// <summary>
+        /// Обновление состояния движения каждый кадр.
+        /// </summary>
+        public override void Update()
+        {
+            HandleInput();
+            CheckForJump();
+            UpdateAnimation();
+        }
 
-    /// <summary>
-    /// Выход из состояния перемещения.
-    /// Останавливает движение.
-    /// </summary>
-    public override void Exit()
-    {
-        Context.Movement.Stop();
+        /// <summary>
+        /// Фиксированное обновление состояния движения.
+        /// </summary>
+        public override void FixedUpdate()
+        {
+            HandleMovement();
+        }
+
+        /// <summary>
+        /// Обработка ввода игрока.
+        /// </summary>
+        private void HandleInput()
+        {
+            if (Context.InputReader == null) return;
+
+            float moveDirection = Context.InputReader.MoveDirection;
+            
+            // Разворот персонажа
+            if (moveDirection != 0 && Context.Flipper != null)
+            {
+                Context.Flipper.Flip(moveDirection);
+            }
+        }
+
+        /// <summary>
+        /// Проверка попытки прыжка.
+        /// </summary>
+        private void CheckForJump()
+        {
+            if (Context.InputReader?.JumpPressed == true && Context.Movable?.IsGrounded() == true)
+            {
+                ChangeToJumpState();
+            }
+        }
+
+        /// <summary>
+        /// Обработка движения.
+        /// </summary>
+        private void HandleMovement()
+        {
+            if (Context.Movable == null) return;
+
+            float moveDirection = Context.InputReader?.MoveDirection ?? 0f;
+            Context.Movable.Move(moveDirection);
+        }
+
+        /// <summary>
+        /// Обновление анимации.
+        /// </summary>
+        private void UpdateAnimation()
+        {
+            if (Context.Animator == null) return;
+
+            float moveSpeed = Mathf.Abs(Context.InputReader?.MoveDirection ?? 0f);
+            bool isInAir = !Context.Movable?.IsGrounded() ?? true;
+
+            Context.Animator.SetMoveSpeed(moveSpeed);
+            Context.Animator.SetInAir(isInAir);
+        }
     }
 }

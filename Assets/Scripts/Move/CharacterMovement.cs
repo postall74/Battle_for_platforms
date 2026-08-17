@@ -1,57 +1,73 @@
-using System;
 using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody2D), typeof(Flipper), typeof(GroundChecker))]
-public class CharacterMovement : MonoBehaviour, IMovable
+namespace BattleForPlatforms.Move
 {
-    [Header("Movement Settings")]
-    [SerializeField] private float _speed = 5f;
-    [SerializeField] private float _jumpForce = 15f;
-
-    public event Action<float> Movement;
-    public event Action Jumped;
-
-    public Rigidbody2D Rigidbody { get; private set; }
-    public Flipper Flipper { get; private set; }
-    public GroundChecker GroundChecker { get; private set; }
-
-    public bool IsGrounded => GroundChecker != null ? GroundChecker.IsGrounded : false;
-    public float Speed => _speed;
-
-    private void Awake()
-    {
-        Rigidbody = GetComponent<Rigidbody2D>();
-        Flipper = GetComponent<Flipper>();
-        GroundChecker = GetComponent<GroundChecker>();
-    }
-
-    public void Move(float direction)
-    {
-        Flipper.Flip(direction);
-        Rigidbody.linearVelocity = new Vector2(_speed * direction, Rigidbody.linearVelocity.y);
-        Movement?.Invoke(direction);
-    }
-
     /// <summary>
-    /// Останавливает горизонтальное движение персонажа.
+    /// Компонент движения персонажа.
+    /// Реализует перемещение и прыжки с использованием физики Unity.
     /// </summary>
-    public void Stop()
+    public class CharacterMovement : MonoBehaviour, IMovable
     {
-        if (Rigidbody != null)
-            Rigidbody.linearVelocity = new Vector2(0, Rigidbody.linearVelocity.y);
-    }
+        [Header("Настройки движения")]
+        [SerializeField] private float _moveSpeed = 5f;
+        [SerializeField] private float _jumpForce = 10f;
 
-    public void Jump()
-    {
-        if (IsGrounded == false)
-            return;
+        [Header("Компоненты")]
+        [SerializeField] private GroundChecker _groundChecker;
+        [SerializeField] private Rigidbody2D _rigidbody;
 
-        Rigidbody.AddForce(new Vector2(0, _jumpForce), ForceMode2D.Impulse);
-        Jumped?.Invoke();
-    }
+        private bool _isJumping;
 
-    public float GetVerticalVelocity()
-    {
-        return Rigidbody != null ? Rigidbody.linearVelocity.y : 0f;
+        private void Awake()
+        {
+            if (_rigidbody == null)
+                _rigidbody = GetComponent<Rigidbody2D>();
+            
+            if (_groundChecker == null)
+                _groundChecker = GetComponentInChildren<GroundChecker>();
+        }
+
+        /// <summary>
+        /// Перемещение персонажа в заданном направлении.
+        /// </summary>
+        /// <param name="direction">Направление движения (-1, 0, 1).</param>
+        public void Move(float direction)
+        {
+            if (_rigidbody == null) return;
+
+            Vector2 velocity = _rigidbody.velocity;
+            velocity.x = direction * _moveSpeed;
+            _rigidbody.velocity = velocity;
+        }
+
+        /// <summary>
+        /// Выполнение прыжка.
+        /// Прыжок возможен только если персонаж на земле.
+        /// </summary>
+        public void Jump()
+        {
+            if (!IsGrounded() || _rigidbody == null) return;
+
+            Vector2 jumpVelocity = Vector2.up * _jumpForce;
+            _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, jumpVelocity.y);
+            _isJumping = true;
+        }
+
+        /// <summary>
+        /// Проверка, находится ли персонаж на земле.
+        /// </summary>
+        /// <returns>True, если персонаж на земле, иначе False.</returns>
+        public bool IsGrounded()
+        {
+            return _groundChecker?.IsGrounded() ?? false;
+        }
+
+        /// <summary>
+        /// Сброс флага прыжка (вызывается из анимации).
+        /// </summary>
+        public void ResetJumpFlag()
+        {
+            _isJumping = false;
+        }
     }
 }

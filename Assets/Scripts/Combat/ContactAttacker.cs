@@ -1,37 +1,52 @@
 using UnityEngine;
 
-/// <summary>
-/// Компонент для нанесения урона при контакте.
-/// Используется врагами для атаки игрока при столкновении.
-/// </summary>
-[RequireComponent(typeof(Collider2D))]
-public class ContactAttacker : MonoBehaviour, IContactAttacker
+namespace BattleForPlatforms.Combat
 {
-    [Header("Настройки атаки")]
-    [SerializeField] private int _damage = 10;
-
     /// <summary>
-    /// Количество урона, которое наносит объект.
+    /// Компонент контактной атаки.
+    /// Наносит урон при столкновении с целью.
     /// </summary>
-    public int Damage => _damage;
-
-    /// <summary>
-    /// Нанести урон при контакте с целью.
-    /// </summary>
-    /// <param name="target">Цель атаки.</param>
-    public void AttackOnContact(IHealth target)
+    public class ContactAttacker : MonoBehaviour, IContactAttacker
     {
-        if (target == null || !target.IsAlive)
-            return;
+        [Header("Настройки атаки")]
+        [SerializeField] private float _damage = 10f;
+        [SerializeField] private float _attackCooldown = 0.5f;
 
-        target.TakeDamage(_damage);
-    }
+        private float _lastAttackTime;
 
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision.gameObject.TryGetComponent<IHealth>(out var health))
+        /// <summary>
+        /// Количество урона, наносимого при контакте.
+        /// </summary>
+        public float Damage => _damage;
+
+        /// <summary>
+        /// Событие, вызываемое при успешной атаке.
+        /// </summary>
+        public event System.Action<IHealth> OnAttack;
+
+        private void OnCollisionEnter2D(Collision2D collision)
         {
-            AttackOnContact(health);
+            var health = collision.gameObject.GetComponent<IHealth>();
+            
+            if (health == null) return;
+
+            Attack(health);
+        }
+
+        /// <summary>
+        /// Атака цели при контакте.
+        /// </summary>
+        /// <param name="target">Цель атаки.</param>
+        public void Attack(IHealth target)
+        {
+            if (target == null || !target.IsAlive) return;
+
+            float currentTime = Time.time;
+            if (currentTime - _lastAttackTime < _attackCooldown) return;
+
+            _lastAttackTime = currentTime;
+            target.TakeDamage(_damage);
+            OnAttack?.Invoke(target);
         }
     }
 }

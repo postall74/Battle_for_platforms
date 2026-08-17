@@ -1,42 +1,30 @@
 using UnityEngine;
 
-/// <summary>
-/// Компонент для нанесения урона при контакте с игроком.
-/// Используется на врагах для атаки игрока при столкновении.
-/// </summary>
-[RequireComponent(typeof(Collider2D))]
-public class ContactDamage : MonoBehaviour
+namespace BattleForPlatforms.Combat
 {
-    [Header("Настройки урона")]
-    [SerializeField] private int _damage = 10;
-    [SerializeField] private float _attackCooldown = 1f;
-
-    private float _lastAttackTime;
-
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        HandleCollision(collision.gameObject);
-    }
-
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        HandleCollision(other.gameObject);
-    }
-
     /// <summary>
-    /// Обработка столкновения с объектом.
-    /// Если объект имеет HealthProvider, наносит ему урон.
+    /// Компонент получения урона от контакта.
+    /// Используется на объектах, которые могут получать урон при столкновении с атакующими.
     /// </summary>
-    /// <param name="target">Целевой объект.</param>
-    private void HandleCollision(GameObject target)
+    public class ContactDamage : MonoBehaviour
     {
-        if (Time.time - _lastAttackTime < _attackCooldown)
-            return;
+        [Header("Настройки")]
+        [SerializeField] private float _damage = 10f;
+        [SerializeField] private float _cooldown = 0.5f;
 
-        if (target.TryGetComponent<HealthProvider>(out var healthProvider))
+        private float _lastDamageTime;
+
+        private void OnCollisionEnter2D(Collision2D collision)
         {
-            healthProvider.TakeDamage(_damage);
-            _lastAttackTime = Time.time;
+            var health = collision.gameObject.GetComponent<IHealth>();
+            
+            if (health == null || !health.IsAlive) return;
+
+            float currentTime = Time.time;
+            if (currentTime - _lastDamageTime < _cooldown) return;
+
+            _lastDamageTime = currentTime;
+            health.TakeDamage(_damage);
         }
     }
 }

@@ -1,17 +1,20 @@
-/// <summary>
-/// Интерфейс для объектов, которые могут быть атакованы прыжком сверху.
-/// Используется для реализации механики "Mario-style" атаки на врагов.
-/// </summary>
-public interface IJumpAttackable
+namespace BattleForPlatforms.Interfaces
 {
     /// <summary>
-    /// Проверка, может ли объект быть атакован прыжком сверху.
+    /// Интерфейс для объекта, способного атаковать прыжком сверху.
     /// </summary>
-    bool CanBeJumpAttacked { get; }
+    public interface IJumpAttackable
+    {
+        /// <summary>
+        /// Попытка атаки прыжком сверху.
+        /// </summary>
+        /// <param name="attacker">Атакующий объект.</param>
+        /// <returns>True, если атака успешна, иначе False.</returns>
+        bool TryJumpAttack(IJumpAttackable attacker);
 
-    /// <summary>
-    /// Обработка атаки прыжком сверху.
-    /// </summary>
-    /// <param name="attackerTransform">Трансформ атакующего.</param>
-    void OnJumpAttack(UnityEngine.Transform attackerTransform);
+        /// <summary>
+        /// Количество урона, получаемого при атаке прыжком.
+        /// </summary>
+        float JumpAttackDamage { get; }
+    }
 }

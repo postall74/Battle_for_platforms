@@ -1,33 +1,36 @@
-/// <summary>
-/// Интерфейс для объектов, имеющих здоровье.
-/// Предоставляет методы для получения урона, лечения и проверки состояния жизни.
-/// </summary>
-public interface IHealth
+namespace BattleForPlatforms.Interfaces
 {
     /// <summary>
-    /// Текущее количество здоровья.
+    /// Интерфейс для объекта, имеющего здоровье.
+    /// Предоставляет методы для получения урона и лечения.
     /// </summary>
-    int CurrentHealth { get; }
+    public interface IHealth
+    {
+        /// <summary>
+        /// Текущее количество здоровья.
+        /// </summary>
+        float CurrentHealth { get; }
 
-    /// <summary>
-    /// Максимальное количество здоровья.
-    /// </summary>
-    int MaxHealth { get; }
+        /// <summary>
+        /// Максимальное количество здоровья.
+        /// </summary>
+        float MaxHealth { get; }
 
-    /// <summary>
-    /// Проверка, жив ли объект.
-    /// </summary>
-    bool IsAlive { get; }
+        /// <summary>
+        /// Флаг, указывающий, жив ли объект.
+        /// </summary>
+        bool IsAlive { get; }
 
-    /// <summary>
-    /// Нанести урон объекту.
-    /// </summary>
-    /// <param name="damage">Количество урона.</param>
-    void TakeDamage(int damage);
+        /// <summary>
+        /// Нанесение урона объекту.
+        /// </summary>
+        /// <param name="damage">Количество урона.</param>
+        void TakeDamage(float damage);
 
-    /// <summary>
-    /// Восстановить здоровье объекту.
-    /// </summary>
-    /// <param name="amount">Количество восстанавливаемого здоровья.</param>
-    void Heal(int amount);
+        /// <summary>
+        /// Лечение объекта.
+        /// </summary>
+        /// <param name="amount">Количество здоровья для восстановления.</param>
+        void Heal(float amount);
+    }
 }

@@ -1,11 +1,19 @@
-/// <summary>
-/// Интерфейс для объектов, которые могут атаковать при контакте.
-/// </summary>
-public interface IContactAttacker
+namespace BattleForPlatforms.Interfaces
 {
     /// <summary>
-    /// Нанести урон при контакте с целью.
+    /// Интерфейс для объекта, наносящего урон при контакте.
     /// </summary>
-    /// <param name="target">Цель атаки.</param>
-    void AttackOnContact(IHealth target);
+    public interface IContactAttacker
+    {
+        /// <summary>
+        /// Количество урона, наносимого при контакте.
+        /// </summary>
+        float Damage { get; }
+
+        /// <summary>
+        /// Атака цели при контакте.
+        /// </summary>
+        /// <param name="target">Цель атаки.</param>
+        void Attack(IHealth target);
+    }
 }

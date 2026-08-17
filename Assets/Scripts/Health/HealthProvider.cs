@@ -1,104 +1,112 @@
 using UnityEngine;
 
-/// <summary>
-/// Компонент управления здоровьем персонажа.
-/// Отвечает за получение урона, лечение и смерть.
-/// </summary>
-public class HealthProvider : MonoBehaviour, IHealth
+namespace BattleForPlatforms.Health
 {
-    [Header("Настройки здоровья")]
-    [SerializeField] private int _maxHealth = 100;
-    [SerializeField] private float _invincibilityDuration = 1f;
-
-    private int _currentHealth;
-    private bool _isInvincible;
-    private float _invincibilityTimer;
-
     /// <summary>
-    /// Текущее количество здоровья.
+    /// Компонент управления здоровьем сущности.
+    /// Реализует получение урона, лечение и смерть.
     /// </summary>
-    public int CurrentHealth => _currentHealth;
-
-    /// <summary>
-    /// Максимальное количество здоровья.
-    /// </summary>
-    public int MaxHealth => _maxHealth;
-
-    /// <summary>
-    /// Проверка, жив ли объект.
-    /// </summary>
-    public bool IsAlive => _currentHealth > 0;
-
-    /// <summary>
-    /// Событие изменения здоровья.
-    /// </summary>
-    public event System.Action<int, int> HealthChanged;
-
-    /// <summary>
-    /// Событие смерти.
-    /// </summary>
-    public event System.Action Died;
-
-    private void Start()
+    public class HealthProvider : MonoBehaviour, IHealth
     {
-        _currentHealth = _maxHealth;
-        _isInvincible = false;
-        _invincibilityTimer = 0f;
-    }
+        [Header("Настройки здоровья")]
+        [SerializeField] private float _maxHealth = 100f;
+        [SerializeField] private float _invincibilityDuration = 1f;
 
-    private void Update()
-    {
-        if (_isInvincible)
+        private float _currentHealth;
+        private bool _isInvincible;
+        private bool _isDead;
+
+        /// <summary>
+        /// Событие, вызываемое при изменении здоровья.
+        /// </summary>
+        public event System.Action<float, float> OnHealthChanged;
+
+        /// <summary>
+        /// Событие, вызываемое при смерти.
+        /// </summary>
+        public event System.Action OnDied;
+
+        /// <summary>
+        /// Текущее количество здоровья.
+        /// </summary>
+        public float CurrentHealth => _currentHealth;
+
+        /// <summary>
+        /// Максимальное количество здоровья.
+        /// </summary>
+        public float MaxHealth => _maxHealth;
+
+        /// <summary>
+        /// Флаг, указывающий, жив ли объект.
+        /// </summary>
+        public bool IsAlive => !_isDead;
+
+        private void Start()
         {
-            _invincibilityTimer -= Time.deltaTime;
-            if (_invincibilityTimer <= 0f)
-                _isInvincible = false;
+            _currentHealth = _maxHealth;
         }
-    }
 
-    /// <summary>
-    /// Нанести урон объекту.
-    /// </summary>
-    /// <param name="damage">Количество урона.</param>
-    public void TakeDamage(int damage)
-    {
-        if (!IsAlive || _isInvincible)
-            return;
-
-        _currentHealth = Mathf.Max(0, _currentHealth - damage);
-        HealthChanged?.Invoke(_currentHealth, _maxHealth);
-
-        if (!IsAlive)
+        /// <summary>
+        /// Нанесение урона объекту.
+        /// </summary>
+        /// <param name="damage">Количество урона.</param>
+        public void TakeDamage(float damage)
         {
-            Died?.Invoke();
+            if (_isDead || _isInvincible) return;
+
+            _currentHealth = Mathf.Max(0, _currentHealth - damage);
+            OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
+
+            if (_currentHealth <= 0)
+            {
+                Die();
+            }
+            else if (_invincibilityDuration > 0)
+            {
+                StartCoroutine(InvincibilityCoroutine());
+            }
         }
-        else
+
+        /// <summary>
+        /// Лечение объекта.
+        /// </summary>
+        /// <param name="amount">Количество здоровья для восстановления.</param>
+        public void Heal(float amount)
+        {
+            if (_isDead) return;
+
+            _currentHealth = Mathf.Min(_maxHealth, _currentHealth + amount);
+            OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
+        }
+
+        /// <summary>
+        /// Смерть объекта.
+        /// </summary>
+        private void Die()
+        {
+            _isDead = true;
+            OnDied?.Invoke();
+        }
+
+        /// <summary>
+        /// Корутина временной неуязвимости.
+        /// </summary>
+        private System.Collections.IEnumerator InvincibilityCoroutine()
         {
             _isInvincible = true;
-            _invincibilityTimer = _invincibilityDuration;
+            yield return new WaitForSeconds(_invincibilityDuration);
+            _isInvincible = false;
         }
-    }
 
-    /// <summary>
-    /// Восстановить здоровье объекту.
-    /// </summary>
-    /// <param name="amount">Количество восстанавливаемого здоровья.</param>
-    public void Heal(int amount)
-    {
-        if (!IsAlive)
-            return;
-
-        _currentHealth = Mathf.Min(_maxHealth, _currentHealth + amount);
-        HealthChanged?.Invoke(_currentHealth, _maxHealth);
-    }
-
-    /// <summary>
-    /// Установить значение здоровья (для тестов).
-    /// </summary>
-    /// <param name="health">Новое значение здоровья.</param>
-    public void SetHealth(int health)
-    {
-        _currentHealth = Mathf.Clamp(health, 0, _maxHealth);
-        HealthChanged?.Invoke(_currentHealth, _maxHealth);
+        /// <summary>
+        /// Сброс состояния смерти (для респауна).
+        /// </summary>
+        public void ResetHealth()
+        {
+            _isDead = false;
+            _currentHealth = _maxHealth;
+            _isInvincible = false;
+            OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
+        }
     }
 }
