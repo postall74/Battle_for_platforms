@@ -1,78 +1,105 @@
 using UnityEngine;
+using BattleForPlatforms.Player.States;
 
-[RequireComponent(typeof(PlayerAnimator), typeof(CharacterMovement), typeof(Collector))]
-public class Player : MonoBehaviour
+namespace BattleForPlatforms.Player
 {
-    public Rigidbody2D Rigidbody { get; private set; }
-    public SpriteRenderer SpriteRenderer { get; private set; }
-    public InputReader InputReader { get; private set; }
-    public CharacterMovement Movement { get; private set; }
-    public PlayerAnimator Animator { get; private set; }
-    public Collector Collector { get; private set; }
-    public Flipper Flipper { get; private set; }
-    public GroundChecker GroundChecker { get; private set; }
-
-    private void Awake()
+    /// <summary>
+    /// Главный компонент игрока.
+    /// Инициализирует все зависимости и машину состояний.
+    /// </summary>
+    public class Player : MonoBehaviour
     {
-        InitializeComponents();
-        SubscribeToEvents();
-    }
+        [Header("Компоненты")]
+        [SerializeField] private Move.CharacterMovement _movement;
+        [SerializeField] private PlayerAnimator _animator;
+        [SerializeField] private Health.HealthProvider _health;
+        [SerializeField] private Input.InputReader _inputReader;
+        [SerializeField] private Move.Flipper _flipper;
 
-    private void Update()
-    {
-        HandleInput();
-    }
+        private PlayerStateMachine _stateMachine;
+        private PlayerContext _context;
 
-    private void FixedUpdate()
-    {
-        HandleMovement();
-    }
-
-    private void OnDestroy()
-    {
-        UnsubscribeFromEvents();
-    }
-
-    private void InitializeComponents()
-    {
-        Rigidbody = GetComponent<Rigidbody2D>();
-        SpriteRenderer = GetComponent<SpriteRenderer>();
-        InputReader = GetComponent<InputReader>();
-        Movement = GetComponent<CharacterMovement>();
-        Animator = GetComponent<PlayerAnimator>();
-        Collector = GetComponent<Collector>();
-        Flipper = GetComponent<Flipper>();
-        GroundChecker = GetComponent<GroundChecker>();
-    }
-
-    private void SubscribeToEvents()
-    {
-        GroundChecker.GroundedChanged += Animator.HandleGroundedChanged;
-        Movement.Movement += Animator.HandleMovement;
-        Movement.Jumped += Animator.HandleJump;
-    }
-
-    private void UnsubscribeFromEvents()
-    {
-        if (GroundChecker != null)
-            GroundChecker.GroundedChanged -= Animator.HandleGroundedChanged;
-
-        if (Movement != null)
+        private void Awake()
         {
-            Movement.Movement -= Animator.HandleMovement;
-            Movement.Jumped -= Animator.HandleJump;
+            // Получаем компоненты, если они не назначены
+            if (_movement == null)
+                _movement = GetComponent<Move.CharacterMovement>();
+            
+            if (_animator == null)
+                _animator = GetComponent<PlayerAnimator>();
+            
+            if (_health == null)
+                _health = GetComponent<Health.HealthProvider>();
+            
+            if (_inputReader == null)
+                _inputReader = GetComponent<Input.InputReader>();
+            
+            if (_flipper == null)
+                _flipper = GetComponent<Move.Flipper>();
+
+            // Создаем контекст
+            _context = new PlayerContext(
+                _movement,
+                _animator,
+                _health,
+                _inputReader,
+                _flipper
+            );
+
+            // Создаем машину состояний
+            _stateMachine = new PlayerStateMachine(_context);
+            _context.StateMachine = _stateMachine;
+
+            // Подписываемся на события здоровья
+            _health.OnDied += HandleDeath;
+            _health.OnHealthChanged += HandleHealthChanged;
         }
-    }
 
-    private void HandleMovement()
-    {
-        Movement.Move(InputReader.HorizontalDirection);
-        Animator.HandleVerticalVelocity(Movement.GetVerticalVelocity());
-    }
+        private void Start()
+        {
+            // Инициализируем машину состояний с начальным состоянием
+            _stateMachine.Initialize<PlayerMoveState>();
+        }
 
-    private void HandleInput()
-    {
-        if (InputReader.WasJumpPressed)
-            Movement.Jump();
+        private void Update()
+        {
+            if (_health.IsAlive)
+            {
+                _stateMachine.Update();
+            }
+        }
+
+        private void FixedUpdate()
+        {
+            if (_health.IsAlive)
+            {
+                _stateMachine.FixedUpdate();
+            }
+        }
+
+        /// <summary>
+        /// Обработка смерти игрока.
+        /// </summary>
+        private void HandleDeath()
+        {
+            _stateMachine.ChangeState<PlayerDeathState>();
+        }
+
+        /// <summary>
+        /// Обработка изменения здоровья.
+        /// </summary>
+        private void HandleHealthChanged(float currentHealth, float maxHealth)
+        {
+            // Можно добавить логику для UI или эффектов
+        }
+
+        private void OnDestroy()
+        {
+            if (_health != null)
+            {
+                _health.OnDied -= HandleDeath;
+                _health.OnHealthChanged -= HandleHealthChanged;
+            }
+        }
     }
 }

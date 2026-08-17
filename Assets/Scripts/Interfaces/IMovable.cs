@@ -1,7 +1,26 @@
-public interface IMovable
+namespace BattleForPlatforms.Interfaces
 {
-    public bool IsGrounded { get; }
-    public float Speed { get; }
-    public void Move(float direction);
-    public void Jump();
+    /// <summary>
+    /// Интерфейс для управления движением персонажа.
+    /// Предоставляет методы для перемещения и прыжков.
+    /// </summary>
+    public interface IMovable
+    {
+        /// <summary>
+        /// Перемещение персонажа в заданном направлении.
+        /// </summary>
+        /// <param name="direction">Направление движения (нормализованный вектор).</param>
+        void Move(float direction);
+
+        /// <summary>
+        /// Выполнение прыжка.
+        /// </summary>
+        void Jump();
+
+        /// <summary>
+        /// Проверка, находится ли персонаж на земле.
+        /// </summary>
+        /// <returns>True, если персонаж на земле, иначе False.</returns>
+        bool IsGrounded();
+    }
 }
