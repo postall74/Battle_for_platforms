@@ -32,6 +32,15 @@ public class CharacterMovement : MonoBehaviour, IMovable
         Movement?.Invoke(direction);
     }
 
+    /// <summary>
+    /// Останавливает горизонтальное движение персонажа.
+    /// </summary>
+    public void Stop()
+    {
+        if (Rigidbody != null)
+            Rigidbody.linearVelocity = new Vector2(0, Rigidbody.linearVelocity.y);
+    }
+
     public void Jump()
     {
         if (IsGrounded == false)
