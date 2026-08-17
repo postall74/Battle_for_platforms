@@ -1,38 +1,70 @@
-using UnityEngine;
+using BattleForPlatforms.Interfaces.States;
 
-public abstract class EnemyBaseState : IEnterableState, IUpdatableState
+namespace BattleForPlatforms.Enemy.States
 {
-    protected EnemyStateContext Context { get; }
-    protected IStateChanger StateChanger { get; private set; }
-
-    protected EnemyBaseState(EnemyStateContext context)
+    /// <summary>
+    /// Базовое состояние врага.
+    /// Содержит общую логику для всех состояний врага.
+    /// </summary>
+    public abstract class EnemyBaseState : IEnterableState, IUpdatableState, IFixedUpdatableState
     {
-        Context = context;
-    }
+        protected readonly EnemyContext Context;
 
-    public void SetStateMachine(IStateChanger stateChanger)
-    {
-        StateChanger = stateChanger;
-    }
-
-    public abstract void Enter();
-    public abstract void Exit();
-    public abstract void Update(float deltaTime);
-
-    protected bool IsPlayerVisible()
-    {
-        Collider2D playerCollider = Physics2D.OverlapCircle(
-            Context.Transform.position,
-            Context.VisionRange,
-            Context.PlayerLayer);
-
-        if (playerCollider != null)
+        protected EnemyBaseState(EnemyContext context)
         {
-            Context.Player = playerCollider.transform;
-            return true;
+            Context = context;
         }
 
-        Context.Player = null;
-        return false;
+        /// <summary>
+        /// Метод вызывается при входе в состояние.
+        /// </summary>
+        public virtual void Enter()
+        {
+        }
+
+        /// <summary>
+        /// Метод вызывается при выходе из состояния.
+        /// </summary>
+        public virtual void Exit()
+        {
+        }
+
+        /// <summary>
+        /// Метод вызывается каждый кадр для обновления логики состояния.
+        /// </summary>
+        public virtual void Update()
+        {
+        }
+
+        /// <summary>
+        /// Метод вызывается в фиксированный шаг времени для обновления логики состояния.
+        /// </summary>
+        public virtual void FixedUpdate()
+        {
+        }
+
+        /// <summary>
+        /// Переключение на состояние патрулирования.
+        /// </summary>
+        protected void ChangeToPatrolState()
+        {
+            Context.StateMachine.ChangeState<EnemyPatrolState>();
+        }
+
+        /// <summary>
+        /// Переключение на состояние преследования.
+        /// </summary>
+        protected void ChangeToChaseState()
+        {
+            Context.StateMachine.ChangeState<EnemyChaseState>();
+        }
+
+        /// <summary>
+        /// Переключение на состояние возврата.
+        /// </summary>
+        protected void ChangeToReturnState()
+        {
+            Context.StateMachine.ChangeState<EnemyReturnState>();
+        }
     }
 }

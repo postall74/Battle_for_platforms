@@ -1,37 +1,55 @@
-using System;
 using UnityEngine;
 
-public class Flipper : MonoBehaviour
+namespace BattleForPlatforms.Move
 {
-    private bool _startFacingPosition;
-    private float _rightAngleRotate = 0f;
-    private float _leftAngleRotate = 180f;
-
-    public event Action<bool> Flipped;
-    public bool IsFacingRight { get; private set; } = true;
-
-    private void Start()
+    /// <summary>
+    /// Компонент разворота персонажа по направлению движения.
+    /// Автоматически поворачивает спрайт в сторону движения.
+    /// </summary>
+    public class Flipper : MonoBehaviour
     {
-        _startFacingPosition = IsFacingRight;
-    }
+        [SerializeField] private Transform _visualTransform;
+        [SerializeField] private float _facingDirection = 1f;
 
-    public void Flip(float direction)
-    {
-        if (direction == 0)
-            return;
+        private void Awake()
+        {
+            if (_visualTransform == null)
+                _visualTransform = transform;
+        }
 
-        bool shouldFaceRight = direction > 0;
+        /// <summary>
+        /// Разворот персонажа в заданном направлении.
+        /// </summary>
+        /// <param name="direction">Направление (положительное - вправо, отрицательное - влево).</param>
+        public void Flip(float direction)
+        {
+            if (direction == 0f) return;
 
-        if (shouldFaceRight == IsFacingRight)
-            return;
+            if ((direction > 0f && _facingDirection < 0f) || 
+                (direction < 0f && _facingDirection > 0f))
+            {
+                _facingDirection = direction;
+                Vector3 scale = _visualTransform.localScale;
+                scale.x *= -1;
+                _visualTransform.localScale = scale;
+            }
+        }
 
-        IsFacingRight = shouldFaceRight;
-
-        if (_startFacingPosition)
-            transform.rotation = Quaternion.Euler(0f, shouldFaceRight ? _rightAngleRotate : _leftAngleRotate, 0f);
-        else
-            transform.rotation = Quaternion.Euler(0f, shouldFaceRight ? _leftAngleRotate : _rightAngleRotate, 0f);
-
-        Flipped?.Invoke(IsFacingRight);
+        /// <summary>
+        /// Принудительный разворот в указанную сторону.
+        /// </summary>
+        /// <param name="faceRight">True - вправо, False - влево.</param>
+        public void FlipToDirection(bool faceRight)
+        {
+            float targetDirection = faceRight ? 1f : -1f;
+            
+            if (_facingDirection != targetDirection)
+            {
+                _facingDirection = targetDirection;
+                Vector3 scale = _visualTransform.localScale;
+                scale.x = Mathf.Abs(scale.x) * (faceRight ? 1f : -1f);
+                _visualTransform.localScale = scale;
+            }
+        }
     }
 }
