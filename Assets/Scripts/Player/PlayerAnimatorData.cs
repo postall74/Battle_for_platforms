@@ -1,9 +1,16 @@
 using UnityEngine;
 
-public class PlayerAnimatorData
+namespace BattleForPlatforms.Player
 {
-    public static readonly int HorizontalSpeed = Animator.StringToHash(nameof(HorizontalSpeed));
-    public static readonly int VerticalSpeed = Animator.StringToHash(nameof(VerticalSpeed));
-    public static readonly int IsGrounded = Animator.StringToHash(nameof(IsGrounded));
-    public static readonly int JumpTrigger = Animator.StringToHash(nameof(JumpTrigger));
+    /// <summary>
+    /// Данные для анимации игрока.
+    /// Содержит хеши параметров аниматора для оптимизации.
+    /// </summary>
+    public class PlayerAnimatorData
+    {
+        public readonly int MoveSpeedHash = Animator.StringToHash("MoveSpeed");
+        public readonly int InAirHash = Animator.StringToHash("InAir");
+        public readonly int HitHash = Animator.StringToHash("Hit");
+        public readonly int DeadHash = Animator.StringToHash("Dead");
+    }
 }

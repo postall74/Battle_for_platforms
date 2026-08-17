@@ -1,63 +1,104 @@
-using UnityEditor.SceneManagement;
+using BattleForPlatforms.Interfaces.States;
 using UnityEngine;
 
-public class EnemyPatrolState : EnemyBaseState
+namespace BattleForPlatforms.Enemy.States
 {
-    private bool _isFacingRight;
-    private float _turnBuffer = 0.1f;
-
-    public EnemyPatrolState(EnemyStateContext context, bool startFacingRight)
-        : base(context)
+    /// <summary>
+    /// Состояние патрулирования врага.
+    /// Враг перемещается между точками патрулирования в своей зоне.
+    /// </summary>
+    public class EnemyPatrolState : EnemyBaseState
     {
-        _isFacingRight = startFacingRight;
-    }
+        private float _currentPoint;
+        private float _patrolSpeed = 2f;
+        private bool _movingRight = true;
 
-    public override void Enter()
-    {
-        Context.Movement.Move(GetDirection());
-    }
-
-    public override void Update(float deltaTime)
-    {
-        if (IsPlayerVisible())
+        public EnemyPatrolState(EnemyContext context) : base(context)
         {
-            StateChanger.ChangeState<EnemyChaseState>();
-            return;
         }
 
-        if (_isFacingRight && Context.Transform.position.x + _turnBuffer >= Context.RightPatrolPoint.position.x)
-            TurnArround(false);
-        else if (_isFacingRight == false && Context.Transform.position.x - _turnBuffer <= Context.LeftPatrolPoint.position.x)
-            TurnArround(true);
+        /// <summary>
+        /// Вход в состояние патрулирования.
+        /// Инициализирует направление движения.
+        /// </summary>
+        public override void Enter()
+        {
+            _currentPoint = Context.PatrolZone?.LeftX ?? transform.position.x - 5f;
+            Context.Animator?.SetMoveSpeed(_patrolSpeed);
+        }
 
-        Context.Movement.Move(GetDirection());
-    }
+        /// <summary>
+        /// Обновление состояния патрулирования каждый кадр.
+        /// Проверяет видимость игрока и перемещается.
+        /// </summary>
+        public override void Update()
+        {
+            CheckForPlayer();
+        }
 
-    public override void Exit()
-    {
-        Context.Movement.Stop();
-    }
+        /// <summary>
+        /// Фиксированное обновление состояния патрулирования.
+        /// Выполняет перемещение между точками.
+        /// </summary>
+        public override void FixedUpdate()
+        {
+            Patrol();
+        }
 
-    private void TurnArround(bool isFacingRight)
-    {
-        _isFacingRight = isFacingRight;
-        float newDirection = GetDirection();
+        /// <summary>
+        /// Проверка видимости игрока.
+        /// Если игрок найден, переключается на преследование.
+        /// </summary>
+        private void CheckForPlayer()
+        {
+            if (Context.PlayerTransform == null || Context.Vision == null) return;
 
-        Vector3 newPosition = Context.Transform.position;
+            if (Context.Vision.CanSeeTarget(Context.PlayerTransform.position))
+            {
+                ChangeToChaseState();
+            }
+        }
 
-        if(_isFacingRight)
-            newPosition.x = Mathf.Min(newPosition.x, Context.RightPatrolPoint.position.x - _turnBuffer);
-        else
-            newPosition.x = Mathf.Max(newPosition.x, Context.LeftPatrolPoint.position.x + _turnBuffer);
+        /// <summary>
+        /// Патрулирование зоны.
+        /// Перемещение между левой и правой границами зоны.
+        /// </summary>
+        private void Patrol()
+        {
+            if (Context.Movable == null || Context.PatrolZone == null) return;
 
-        Context.Transform.position = newPosition;
-        Context.Movement.Move(newDirection);
+            float currentX = transform.position.x;
+            float targetX = _movingRight ? Context.PatrolZone.RightX : Context.PatrolZone.LeftX;
 
+            // Проверка достижения точки
+            if ((_movingRight && currentX >= targetX) || (!_movingRight && currentX <= targetX))
+            {
+                _movingRight = !_movingRight;
+                Flip();
+            }
 
-    }
+            // Движение к цели
+            float direction = _movingRight ? 1f : -1f;
+            Context.Movable.Move(direction);
+            
+            // Разворот
+            if (Context.Animator != null)
+            {
+                var flipper = (Context.Movable as MonoBehaviour)?.GetComponent<Move.Flipper>();
+                flipper?.FlipToDirection(_movingRight);
+            }
+        }
 
-    private float GetDirection()
-    {
-        return _isFacingRight ? 1 : -1;
+        /// <summary>
+        /// Разворот врага.
+        /// </summary>
+        private void Flip()
+        {
+            if (Context.Movable is MonoBehaviour mb)
+            {
+                var flipper = mb.GetComponent<Move.Flipper>();
+                flipper?.Flip(_movingRight ? 1f : -1f);
+            }
+        }
     }
 }
