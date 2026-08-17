@@ -1,48 +1,53 @@
 ```
-# Unity specific ignores
+# Unity-specific ignores
 Library/
 Temp/
 Obj/
 Build/
 Logs/
-MemoryCaptures/
 *.unityproj
 *.sln
 *.csproj
 *.user
 *.userprefs
 *.pidb
-*.swp
-*.swo
-*.tmp
-*.log
-.vs/
-.idea/
+*.booproj
+*.svd
 *.meta
-*.manifest
-*.prefab
-*.asset
-*.unity
+*.cache
+*.lock
+
+# Build artifacts
+*.dll
+*.exe
+*.pdb
+*.mdb
+*.mod
+*.so
+*.dylib
+*.jar
+*.class
+
+# Dependencies
+Packages/
+node_modules/
 *.unitypackage
-*.mat
-*.anim
-*.controller
-*.physicsMaterial
-*.renderTexture
-*.cubemap
-*.flare
-*.mat
-*.mask
-*.overrideController
-*.playable
-*.signal
-*.guiskin
-*.fontsettings
-*.giparams
-*.pex
-*.mask
-*.spriteatlas
-*.asmdef
-*.rsp
-*.asmref
+
+# Environment
+.env
+.env.local
+.env.*
+
+# Logs
+*.log
+crashlytics-build.properties
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 ```

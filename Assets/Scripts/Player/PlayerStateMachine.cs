@@ -10,5 +10,6 @@ public class PlayerStateMachine : StateMachine
     /// Конструктор машины состояний игрока.
     /// Инициализирует все доступные состояния и регистрирует их в базовой машине состояний.
     /// </summary>
-    public PlayerStateMachine() : base() { }
+    /// <param name="states">Словарь состояний.</param>
+    public PlayerStateMachine(Dictionary<Type, IExitableState> states) : base(states) { }
 }
